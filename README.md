@@ -6,6 +6,8 @@
 [![Code Climate](https://codeclimate.com/github/gabynaiman/eternity.png)](https://codeclimate.com/github/gabynaiman/eternity)
 [![Dependency Status](https://gemnasium.com/gabynaiman/eternity.png)](https://gemnasium.com/gabynaiman/eternity)
 
+Distributed database version control system
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -26,7 +28,7 @@ TODO: Write usage instructions here
 
 ## Contributing
 
-1. Fork it ( https://github.com/[my-github-username]/eternity/fork )
+1. Fork it ( https://github.com/gabynaiman/eternity/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
