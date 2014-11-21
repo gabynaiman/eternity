@@ -3,6 +3,7 @@ require 'digest/sha1'
 require 'msgpack'
 require 'class_config'
 require 'nido'
+require 'logger'
 
 require_relative 'eternity/version'
 
@@ -18,4 +19,5 @@ module Eternity
 
   attr_config :redis, Redic.new
   attr_config :namespace, Nido.new(:git)
+  attr_config :logger, Logger.new(STDOUT)
 end

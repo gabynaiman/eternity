@@ -8,3 +8,8 @@ Turn.config do |c|
   c.natural = true
   c.ansi = true
 end
+
+Eternity.redis.call 'FLUSHDB'
+Eternity.logger.formatter = proc do |severity, datetime, progname, msg|
+  "#{msg}\n"
+end
