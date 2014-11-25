@@ -1,11 +1,11 @@
 module Eternity
   class Index
 
-    attr_reader :session, :key
+    attr_reader :session, :namespace
 
     def initialize(session)
       @session = session
-      @key = session.key[:index]
+      @namespace = session.namespace[:index]
     end
 
     def entries
@@ -19,13 +19,17 @@ module Eternity
     end
 
     def sections
-      Eternity.redis.call('KEYS', key['*']).map do |k|
-        k.gsub key[''], ''
+      Eternity.redis.call('KEYS', namespace['*']).map do |k|
+        k.gsub namespace[''], ''
       end
     end
 
     def revert
-      restore session.head.index_dump
+      if session.head?
+        restore session.head.index_dump
+      else
+        destroy
+      end
     end
 
     def dump

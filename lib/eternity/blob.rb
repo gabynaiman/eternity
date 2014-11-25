@@ -29,8 +29,11 @@ module Eternity
 
     def self.write_file(type, sha1, serialization)
       path = File.join Eternity.data_path, 'blob', type.to_s
-      FileUtils.mkpath path unless Dir.exists? path
-      File.write File.join(path, sha1), serialization
+      filename = File.join path, sha1
+      if !File.exists? filename
+        FileUtils.mkpath path unless Dir.exists? path
+        File.write filename, serialization
+      end
     end
 
     def self.read_file(type, sha1)

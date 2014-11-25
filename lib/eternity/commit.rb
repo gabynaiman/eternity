@@ -49,7 +49,15 @@ module Eternity
     end
 
     def self.create(data)
-      Blob.write :commit, data.merge(time: Time.now.strftime('%Y-%m-%dT%H:%M:%S%z'))
+      params = {
+        time:    Time.now.strftime('%Y-%m-%dT%H:%M:%S%z'),
+        author:  data.fetch(:author),
+        message: data.fetch(:message),
+        parents: data.fetch(:parents),
+        index:   data.fetch(:index),
+        delta:   data.fetch(:delta)
+      }
+      Blob.write :commit, params
     end
 
   end

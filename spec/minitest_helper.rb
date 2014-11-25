@@ -24,6 +24,10 @@ class Minitest::Spec
     Eternity.redis
   end
 
+  def print_keys
+    puts Eternity.redis_keys.sort
+  end
+
   before do
     Eternity.clean_redis
     Eternity.clean_file_system

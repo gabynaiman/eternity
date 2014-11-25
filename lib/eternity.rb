@@ -14,6 +14,7 @@ require_relative 'eternity/session'
 require_relative 'eternity/index'
 require_relative 'eternity/index_section'
 require_relative 'eternity/delta'
+require_relative 'eternity/delta_section'
 
 module Eternity
   extend ClassConfig
@@ -24,8 +25,12 @@ module Eternity
   attr_config :data_path, File.join(Dir.home, '.eternity')
   attr_config :logger, Logger.new(STDOUT)
 
+  def self.redis_keys
+    redis.call 'KEYS', namespace['*']
+  end
+
   def self.clean_redis
-    redis.call('KEYS', namespace['*']).each do |key|
+    redis_keys.each do |key|
       redis.call 'DEL', key
     end
   end
