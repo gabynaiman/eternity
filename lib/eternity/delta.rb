@@ -16,7 +16,7 @@ module Eternity
       {}.tap do |hash|
         each_namespace do |section, type|
           hash[section] ||= {}
-          hash[section][type] = Eternity.redis.call 'SMEMBERS', namespace[section][type]
+          hash[section][type] = Eternity.redis.call('SMEMBERS', namespace[section][type]).sort
         end
       end
     end

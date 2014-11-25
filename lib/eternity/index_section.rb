@@ -11,7 +11,7 @@ module Eternity
     end
     
     def entries
-      Eternity.redis.call('HGETALL', namespace).each_slice(2).to_h
+      Hash[Eternity.redis.call('HGETALL', namespace).each_slice(2).to_a]
     end
 
     def key?(id)

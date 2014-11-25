@@ -38,7 +38,7 @@ module Eternity
       params = {
         parents: [head_id].compact, 
         index: Blob.write(:index, index.dump), 
-        delta: Blob.write(:delta, delta.to_h)
+        delta: Blob.write(:delta, delta)
       }
       
       commit_id = Commit.create options.merge(params)

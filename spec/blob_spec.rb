@@ -3,7 +3,7 @@ require 'minitest_helper'
 describe Blob do
 
   let(:data) { {'id' => 'AR', 'name' => 'Argentina'} }
-  let(:serialization) { data.to_msgpack }
+  let(:serialization) { MessagePack.pack data }
   let(:sha1) { Digest::SHA1.hexdigest serialization }
   let(:key) { Eternity.namespace[:blob][:xyz][sha1] }
   let(:filename) { File.join(Eternity.data_path, 'blob', 'xyz', sha1) }
