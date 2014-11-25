@@ -4,6 +4,7 @@ require 'msgpack'
 require 'class_config'
 require 'nido'
 require 'logger'
+require 'fileutils'
 
 require_relative 'eternity/version'
 
@@ -18,6 +19,18 @@ module Eternity
   extend ClassConfig
 
   attr_config :redis, Redic.new
-  attr_config :namespace, Nido.new(:git)
+  attr_config :namespace, Nido.new(:eternity)
+  attr_config :blob_cache_expiration, 24 * 60 * 60 # 1 day in seconds
+  attr_config :data_path, File.join(Dir.home, '.eternity')
   attr_config :logger, Logger.new(STDOUT)
+
+  def self.clean_redis
+    redis.call('KEYS', namespace['*']).each do |key|
+      redis.call 'DEL', key
+    end
+  end
+
+  def self.clean_file_system
+    FileUtils.rm_rf data_path if Dir.exists? data_path
+  end
 end
