@@ -44,10 +44,6 @@ module Eternity
       Blob.read :delta, delta_id
     end
 
-    def to_h
-      {'id' => id}.merge @data
-    end
-
     def self.create(data)
       params = {
         time:    Time.now.strftime('%Y-%m-%dT%H:%M:%S%z'),

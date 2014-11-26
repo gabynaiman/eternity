@@ -35,6 +35,8 @@ module Eternity
     end
 
     def commit(options)
+      raise 'Nothing to commit' if @delta.empty?
+
       params = {
         parents: [head_id].compact, 
         index: Blob.write(:index, index.dump), 
