@@ -45,9 +45,9 @@ module Eternity
       raise "Index revert error. #{name.capitalize} #{id} not found" unless key?(id) || delta[name].removed?(id)
 
       delta[name].revert id
-      if index.session.head?
-        tmp_namespace = Eternity.namespace[:tmp][index.session.head.id][:index][name]
-        Eternity.redis.call 'RESTORE', tmp_namespace, 0, index.session.head.index_dump[name]
+      if index.session.current_commit?
+        tmp_namespace = Eternity.namespace[:tmp][index.session.current_commit_id][:index][name]
+        Eternity.redis.call 'RESTORE', tmp_namespace, 0, index.session.current_commit.index_dump[name]
         sha1 = Eternity.redis.call 'HGET', tmp_namespace, id
         Eternity.redis.call 'HSET', namespace, id, sha1
         Eternity.redis.call 'DEL', tmp_namespace

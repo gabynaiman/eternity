@@ -25,8 +25,8 @@ module Eternity
     end
 
     def revert
-      if session.head?
-        restore session.head.index_dump
+      if session.current_commit?
+        restore session.current_commit.index_dump
       else
         destroy
       end
