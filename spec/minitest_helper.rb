@@ -37,12 +37,11 @@ end
 module Minitest::Assertions
   def assert_equal_index(expected, actual)
     session = Session.new Digest::SHA1.hexdigest(actual.to_s)
-    session.index.restore actual
+    session.index.restore actual.index_dump
     entries = session.index.entries
     session.destroy
     entries.must_equal expected
   end
 end
 
-Hash.infect_an_assertion :assert_equal_index, :must_equal_index
-
+Commit.infect_an_assertion :assert_equal_index, :must_equal_index

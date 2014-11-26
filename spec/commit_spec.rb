@@ -18,7 +18,7 @@ describe Commit do
     session.head.message.must_equal 'Commit message'
     session.head.parents.must_equal []
     session.head.delta.must_equal 'countries' => {'added' => ['AR']}
-    session.head.index_dump.must_equal_index 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
+    session.head.must_equal_index 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
   end
 
   it 'Chained commits' do
@@ -34,7 +34,7 @@ describe Commit do
     session.head.message.must_equal 'Commit 2'
     session.head.parent_ids.must_equal [commit_1]
     session.head.delta.must_equal 'countries' => {'added' => ['UY']}
-    session.head.index_dump.must_equal_index 'countries' => {
+    session.head.must_equal_index 'countries' => {
       'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8', 
       'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
     }
