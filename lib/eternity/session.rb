@@ -18,6 +18,10 @@ module Eternity
       @delta.to_h
     end
 
+    def delta?
+      !@delta.empty?
+    end
+
     def [](section)
       index[section]
     end
@@ -42,8 +46,8 @@ module Eternity
     end
 
     def revert
-      index.revert
       @delta.destroy
+      index.revert
     end
 
     def current_commit_id
@@ -67,23 +71,40 @@ module Eternity
     end
 
     def branch(name)
+      raise 'Cant branch without commit' unless current_commit?
+      raise 'Cant branch with uncommitted changes' if delta?
+
       Eternity.redis.call 'HSET', namespace[:branches], name, current_commit_id
     end
 
-    def checkout(commit_id)
-      raise 'There are uncommitted changes' unless @delta.empty?
+    def checkout(branch)
+      raise 'Cant checkout with uncommitted changes' if delta?
 
-      commit = Commit.new commit_id
+      commit_id =
+        if branches.key?(branch.to_s)
+          branches[branch.to_s]
+        elsif Branch.exists?(branch)
+          Branch.new(branch).commit_id
+        else
+          raise "Invalid branch #{branch}"
+        end
+
+      Eternity.redis.call 'SET', namespace[:current_commit], commit_id
+      Eternity.redis.call 'SET', namespace[:current_branch], branch
+      Eternity.redis.call 'HSET', namespace[:branches], branch, commit_id
       
-      destroy
-      Eternity.redis.call 'SET', namespace[:head], commit.id
-      index.restore commit.index_dump
+      @delta.destroy
+      index.destroy
+      index.restore Commit.new(commit_id).index_dump
     end
 
     def destroy
-      Eternity.redis.call 'DEL', namespace[:head]
-      index.destroy
+      Eternity.redis.call 'DEL', namespace[:current_commit]
+      Eternity.redis.call 'DEL', namespace[:current_branch]
+      Eternity.redis.call 'DEL', namespace[:branches]
+
       @delta.destroy
+      index.destroy
     end
 
   end

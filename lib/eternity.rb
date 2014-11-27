@@ -9,6 +9,7 @@ require 'fileutils'
 require_relative 'eternity/version'
 
 require_relative 'eternity/blob'
+require_relative 'eternity/branch'
 require_relative 'eternity/commit'
 require_relative 'eternity/session'
 require_relative 'eternity/index'
