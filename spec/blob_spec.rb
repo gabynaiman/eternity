@@ -1,6 +1,6 @@
 require 'minitest_helper'
 
-describe Blob do
+describe 'Blob' do
 
   let(:data) { {'id' => 'AR', 'name' => 'Argentina'} }
   let(:serialization) { MessagePack.pack data }

@@ -1,6 +1,6 @@
 require 'minitest_helper'
 
-describe Commit do
+describe 'Commit' do
 
   let(:session) { Session.new :test }
 

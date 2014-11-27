@@ -1,6 +1,6 @@
 require 'minitest_helper'
 
-describe 'Change Tracking' do
+describe 'Index' do
   
   let(:session) { Session.new :test }
 
