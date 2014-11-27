@@ -10,6 +10,26 @@ module Eternity
       @delta = Delta.new self
     end
 
+    def current_commit_id
+      Eternity.redis.call 'GET', namespace[:current_commit]
+    end
+
+    def current_commit
+      Commit.new current_commit_id if current_commit?
+    end
+
+    def current_commit?
+      Eternity.redis.call('EXISTS', namespace[:current_commit]) == 1
+    end
+
+    def current_branch
+      Eternity.redis.call('GET', namespace[:current_branch]) || 'master'
+    end
+
+    def branches
+      Hash[Eternity.redis.call('HGETALL', namespace[:branches]).each_slice(2).to_a]
+    end
+
     def entries
       index.entries
     end
@@ -50,26 +70,6 @@ module Eternity
       index.revert
     end
 
-    def current_commit_id
-      Eternity.redis.call 'GET', namespace[:current_commit]
-    end
-
-    def current_commit
-      Commit.new current_commit_id if current_commit?
-    end
-
-    def current_commit?
-      Eternity.redis.call('EXISTS', namespace[:current_commit]) == 1
-    end
-
-    def current_branch
-      Eternity.redis.call('GET', namespace[:current_branch]) || 'master'
-    end
-
-    def branches
-      Hash[Eternity.redis.call('HGETALL', namespace[:branches]).each_slice(2).to_a]
-    end
-
     def branch(name)
       raise 'Cant branch without commit' unless current_commit?
       raise 'Cant branch with uncommitted changes' if delta?
@@ -96,6 +96,17 @@ module Eternity
       @delta.destroy
       index.destroy
       index.restore Commit.new(commit_id).index_dump
+    end
+
+    def push
+      raise 'Cant push without commit' unless current_commit?
+      raise 'Push rejected. Non fast forward' unless current_commit.fast_forward?(Branch.new(current_branch).commit_id)
+
+      push!
+    end
+
+    def push!
+      Branch.new(current_branch).commit_id = current_commit_id
     end
 
     def destroy

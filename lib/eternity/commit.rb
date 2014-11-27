@@ -44,6 +44,11 @@ module Eternity
       Blob.read :delta, delta_id
     end
 
+    def fast_forward?(commit_id)
+      parent_ids[0] == commit_id || 
+      (parent_ids[0] && parents[0].fast_forward?(commit_id))
+    end
+
     def self.create(data)
       params = {
         time:    Time.now.strftime('%Y-%m-%dT%H:%M:%S%z'),

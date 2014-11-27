@@ -13,7 +13,7 @@ describe 'Synchronization flow' do
 
   describe 'Create branch' do
 
-    it 'Success' do
+    it 'Valid' do
       session[:countries].add 'AR', name: 'Argentina'
       commit_id = session.commit author: 'User', message: 'Commit message'
 
@@ -29,12 +29,12 @@ describe 'Synchronization flow' do
                                   'test_branch' => commit_id
     end
 
-    it 'Fail without commit' do
+    it 'Without commit' do
       error = proc { session.branch :test_branch }.must_raise RuntimeError
       error.message.must_equal 'Cant branch without commit'
     end
     
-    it 'Fail with uncommitted changes' do
+    it 'With uncommitted changes' do
       session[:countries].add 'AR', name: 'Argentina'
       commit_id = session.commit author: 'User', message: 'Commit message'
       session[:countries].remove 'AR'
@@ -45,9 +45,9 @@ describe 'Synchronization flow' do
 
   end
 
-  describe 'Checkout branch' do
+  describe 'Checkout' do
 
-    it 'Checkout local branch' do
+    it 'Local branch' do
       session[:countries].add 'AR', name: 'Argentina'
       commit_1 = session.commit author: 'User', message: 'Commit 1'
 
@@ -68,20 +68,19 @@ describe 'Synchronization flow' do
       session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
     end
 
-    it 'Checkout with uncommitted changes' do
+    it 'With uncommitted changes' do
       session[:countries].add 'AR', name: 'Argentina'
 
       error = proc { session.checkout :test_branch }.must_raise RuntimeError
       error.message.must_equal 'Cant checkout with uncommitted changes'
     end
 
-    it 'Checkout remote branch' do
+    it 'Remote branch' do
       other_session = Session.new :other
       other_session[:countries].add 'AR', name: 'Argentina'
       commit_id = other_session.commit author: 'User', message: 'Commit message'
 
-      branch = Branch.new :test_branch
-      branch.commit_id = commit_id
+      Branch.new(:test_branch).commit_id = commit_id
 
       session.checkout :test_branch
 
@@ -94,55 +93,78 @@ describe 'Synchronization flow' do
       session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
     end
 
-    it 'Checkout invalid branch' do
+    it 'Invalid branch' do
       error = proc { session.checkout :test_branch }.must_raise RuntimeError
       error.message.must_equal 'Invalid branch test_branch'
     end
 
   end
 
-  # it 'Push'
+  describe 'Push' do
 
-  # it 'Push rejected'
+    it 'New branch' do
+      session[:countries].add 'AR', name: 'Argentina'
+      commit_id = session.commit author: 'User', message: 'Commit message'
 
-  # it 'Pull fast-forward'
+      Branch.exists?(:master).must_equal false
 
-  # it 'Pull with merge'
+      session.push
+
+      Branch.new(:master).commit_id.must_equal commit_id
+    end
+
+    it 'Without commit' do
+      error = proc { session.push }.must_raise RuntimeError
+      error.message.must_equal 'Cant push without commit'
+    end
+
+    it 'Fast-forward' do
+      session[:countries].add 'AR', name: 'Argentina'
+      commit_1 = session.commit author: 'User', message: 'Commit 1'
+
+      session[:countries].add 'UY', name: 'Uruguay'
+      commit_2 = session.commit author: 'User', message: 'Commit 2'
+
+      branch = Branch.new :master
+      branch.commit_id = commit_1
+
+      session.push
+
+      branch.commit_id.must_equal commit_2
+    end
+
+    it 'Rejected' do
+      session[:countries].add 'AR', name: 'Argentina'
+      session.commit author: 'User', message: 'Commit message'
+
+      Branch.new(:master).commit_id = '123456789'
+
+      error = proc { session.push }.must_raise RuntimeError
+      error.message.must_equal 'Push rejected. Non fast forward'
+    end
+
+    it 'Forced' do
+      session[:countries].add 'AR', name: 'Argentina'
+      commit_id = session.commit author: 'User', message: 'Commit message'
+
+      branch = Branch.new :master
+      branch.commit_id = '123456789'
+
+      session.push!
+
+      branch.commit_id.must_equal commit_id
+    end
+
+  end
+
+  describe 'Pull' do
+
+    # it 'With uncommitted changes'
+
+    # it 'Fast-forward'
+
+    # it 'Merge'
+
+  end
 
 end
-
-
-=begin
-
-session_1 = Session.new :user_1
-
-session_1.head.branch # => master
-
-session_1.index[:countries].add 'AR', name: 'Argentina'
-session_1.commit message: 'Commit 1', author: 'user'
-session_1.push # master
-
-session_1.branch :spanish
-session_1.checkout :spanish
-
-session_1.index[:countries].add 'BR', name: 'Brasil'
-session_1.commit message: 'Commit 2', author: 'user'
-session_1.push # spanish
-
-# -----------------------------------
-
-session_2 = Session.new :user_2
-
-session_2.head.branch # => master
-
-session_2.checkout :spanish
-session_2.pull # spanish
-# => session_2.merge 123456798
-# => session_2.commit message: 'Merge spanish to spanish', author: 'system'
-
-session_2.checkout :master
-session_2.merge_branch :spanish # merge 123456798
-# => session_2.commit message: 'Merge spanish to master', author: 'system'
-session_2.push # master
-
-=end
