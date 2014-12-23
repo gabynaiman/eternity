@@ -13,7 +13,7 @@ Turn.config do |c|
 end
 
 Eternity.configure do |config|
-  config.namespace = Nido.new :eternity_test
+  config.keyspace = Restruct::Key.new :eternity_test
   config.data_path = File.expand_path('../../tmp', __FILE__)
   config.blob_cache_expiration = 30
   config.logger.formatter = ->(_,_,_,m) { "#{m}\n" }
@@ -35,12 +35,10 @@ class Minitest::Spec
 end
 
 module Minitest::Assertions
-  def assert_equal_index(expected, actual)
-    session = Session.new Digest::SHA1.hexdigest(actual.to_s)
-    session.index.restore actual.index_dump
-    entries = session.index.entries
-    session.destroy
-    entries.must_equal expected
+  def assert_equal_index(expected_entries, actual_commit)
+    actual_commit.with_index do |index|
+      index.to_h.must_equal expected_entries
+    end
   end
 end
 

@@ -1,56 +1,74 @@
 module Eternity
   class DeltaSection
 
-    attr_reader :delta, :name, :namespace
-    
-    def initialize(delta, name)
-      @delta = delta
-      @name = name
-      @namespace = delta.namespace[name]
+    Changes = Restruct::NestedHash.new Restruct::Set
+
+    def initialize(options)
+      @changes = Changes.new options
     end
 
     def add(id)
       if removed? id
-        delete :removed, id
-        register :updated, id
+        removed.delete id
+        updated.add id
       else
-        register :added, id
+        added.add id
       end
     end
 
     def update(id)
-      if !added?(id)
-        register :updated, id
-      end
+      updated.add id unless added? id
     end
 
     def remove(id)
       if added? id
-        delete :added, id
+        added.delete id
       else
-        delete :updated, id
-        register :removed, id
+        updated.delete id
+        removed.add id
       end
     end
 
     def revert(id)
-      [:added, :updated, :removed].each { |t| delete t, id }
+      EVENTS.each { |e| changes[e].delete id }
     end
 
-    [:added, :updated, :removed].each do |type|
-      define_method "#{type}?" do |id|
-        Eternity.redis.call('SISMEMBER', namespace[type], id) == 1
+    EVENTS.each do |event|
+      define_method "#{event}?" do |id|
+        changes[event].include? id
       end
+    end
+
+    def to_h
+      changes.to_h
+    end
+    alias_method :to_primitive, :to_h
+
+    def dump
+      {}.tap do |h|
+        EVENTS.each do |e|
+          h[e] = changes[e].dump unless changes[e].empty?
+        end
+      end
+    end
+
+    def restore(dump)
+      EVENTS.each { |e| changes[e].restore dump[e] }
+    end
+
+    def destroy
+      EVENTS.each { |e| changes[e].destroy }
     end
 
     private
 
-    def register(type, id)
-      Eternity.redis.call 'SADD', namespace[type], id
+    attr_reader :changes
+
+    EVENTS.each do |event|
+      define_method event do
+        changes[event]
+      end
     end
 
-    def delete(type, id)
-      Eternity.redis.call 'SREM', namespace[type], id
-    end
   end
 end

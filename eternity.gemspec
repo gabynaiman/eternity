@@ -20,7 +20,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'redic',        '~> 1.1.1'
   spec.add_dependency 'class_config', '~> 0.0.1'
-  spec.add_dependency 'nido',         '~> 0.0.1'
 
   if RUBY_PLATFORM == 'java'
     spec.add_dependency 'msgpack-jruby'

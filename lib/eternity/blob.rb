@@ -19,12 +19,12 @@ module Eternity
     private
 
     def self.write_redis(type, sha1, serialization)
-      Eternity.redis.call 'SET', Eternity.namespace[:blob][type][sha1], serialization, 
+      Eternity.redis.call 'SET', Eternity.keyspace[:blob][type][sha1], serialization, 
                           'EX', Eternity.blob_cache_expiration
     end
 
     def self.read_redis(type, sha1)
-      Eternity.redis.call 'GET', Eternity.namespace[:blob][type][sha1]
+      Eternity.redis.call 'GET', Eternity.keyspace[:blob][type][sha1]
     end
 
     def self.write_file(type, sha1, serialization)

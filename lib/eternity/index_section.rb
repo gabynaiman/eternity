@@ -1,21 +1,26 @@
 module Eternity
   class IndexSection
 
-    attr_reader :index, :name, :namespace
-
-    def initialize(index, name)
-      @index = index
-      @name = name.to_s
-      @namespace = index.namespace[name]
+    def initialize(options)
+      @index = options.delete :parent
       @delta = Delta.new index.session
+      @hash = Restruct::Hash.new options
     end
-    
-    def entries
-      Hash[Eternity.redis.call('HGETALL', namespace).each_slice(2).to_a]
+
+    def name
+      hash.key.sections.last
     end
 
     def key?(id)
-      Eternity.redis.call('HEXISTS', namespace, id) == 1
+      hash.key? id
+    end
+
+    def get(id)
+      hash[id]
+    end
+
+    def get_data(id)
+      Blob.read :data, hash[id]
     end
 
     def add(id, data)
@@ -23,7 +28,7 @@ module Eternity
 
       sha1 = Blob.write :data, data
       delta[name].add id
-      Eternity.redis.call 'HSET', namespace, id, sha1
+      hash[id] = sha1
     end
 
     def update(id, data)
@@ -31,14 +36,14 @@ module Eternity
 
       sha1 = Blob.write :data, data
       delta[name].update id
-      Eternity.redis.call 'HSET', namespace, id, sha1
+      hash[id] = sha1
     end
 
     def remove(id)
       raise "Index remove error. #{name.capitalize} #{id} not found" unless key? id
 
       delta[name].remove id
-      Eternity.redis.call 'HDEL', namespace, id
+      hash.delete id
     end
 
     def revert(id)
@@ -46,31 +51,34 @@ module Eternity
 
       delta[name].revert id
       if index.session.current_commit?
-        tmp_namespace = Eternity.namespace[:tmp][index.session.current_commit_id][:index][name]
-        Eternity.redis.call 'RESTORE', tmp_namespace, 0, index.session.current_commit.index_dump[name]
-        sha1 = Eternity.redis.call 'HGET', tmp_namespace, id
-        Eternity.redis.call 'HSET', namespace, id, sha1
-        Eternity.redis.call 'DEL', tmp_namespace
+        index.session.current_commit.with_index do |tmp_index|
+          hash[id] = tmp_index[name].get id
+        end
       else
-        Eternity.redis.call 'HDEL', namespace, id
+        hash.delete id
       end
     end
 
     def dump
-      Eternity.redis.call 'DUMP', namespace
+      hash.dump
     end
 
     def restore(dump)
-      Eternity.redis.call 'RESTORE', namespace, 0, dump
+      hash.restore dump
     end
 
     def destroy
-      Eternity.redis.call 'DEL', namespace
+      hash.destroy
     end
+
+    def to_h
+      hash.to_h
+    end
+    alias_method :to_primitive, :to_h
 
     private
 
-    attr_reader :delta
+    attr_reader :hash, :index, :delta
 
   end
 end

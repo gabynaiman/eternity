@@ -7,14 +7,14 @@ describe 'Index' do
   describe 'Before commit' do
 
     it 'Initial status' do
-      session.delta.must_be_empty
+      session.changes.must_be_empty
       session.entries.must_be_empty
     end
 
     it 'Add' do
       session[:countries].add 'AR', name: 'Argentina'
 
-      session.delta.must_equal 'countries' => {'added' => ['AR']}
+      session.changes.must_equal 'countries' => {'added' => ['AR']}
       session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
     end
 
@@ -29,7 +29,7 @@ describe 'Index' do
       session[:countries].add 'AR', name: 'Argentina'
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
-      session.delta.must_equal 'countries' => {'added' => ['AR']}
+      session.changes.must_equal 'countries' => {'added' => ['AR']}
       session.entries.must_equal 'countries' => {'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd'}
     end
 
@@ -38,7 +38,7 @@ describe 'Index' do
       session[:countries].add 'UY', name: 'Uruguay'
       session[:countries].remove 'AR'
 
-      session.delta.must_equal 'countries' => {'added' => ['UY']}
+      session.changes.must_equal 'countries' => {'added' => ['UY']}
       session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
     end
 
@@ -48,7 +48,7 @@ describe 'Index' do
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
       session[:countries].remove 'AR'
 
-      session.delta.must_equal 'countries' => {'added' => ['UY']}
+      session.changes.must_equal 'countries' => {'added' => ['UY']}
       session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
     end
 
@@ -68,7 +68,7 @@ describe 'Index' do
 
       session[:countries].revert 'AR'
 
-      session.delta.must_equal 'countries' => {'added' => ['UY']}
+      session.changes.must_equal 'countries' => {'added' => ['UY']}
       session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
     end
 
@@ -78,7 +78,7 @@ describe 'Index' do
 
       session.revert
 
-      session.delta.must_be_empty
+      session.changes.must_be_empty
       session.entries.must_be_empty
     end
 
@@ -97,7 +97,7 @@ describe 'Index' do
       
       session.commit author: 'User', message: 'Commit message'
 
-      session.delta.must_be_empty
+      session.changes.must_be_empty
       session.entries.must_equal 'countries' => {
         'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8', 
         'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
@@ -107,7 +107,7 @@ describe 'Index' do
     it 'Update' do
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
-      session.delta.must_equal 'countries' => {'updated' => ['AR']}
+      session.changes.must_equal 'countries' => {'updated' => ['AR']}
       session.entries.must_equal 'countries' => {
         'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd', 
         'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
@@ -117,7 +117,7 @@ describe 'Index' do
     it 'Update twice' do
       2.times { session[:countries].update 'AR', name: 'Argentina', code: 'ARG' }
 
-      session.delta.must_equal 'countries' => {'updated' => ['AR']}
+      session.changes.must_equal 'countries' => {'updated' => ['AR']}
       session.entries.must_equal 'countries' => {
         'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd', 
         'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
@@ -128,14 +128,14 @@ describe 'Index' do
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
       session[:countries].remove 'AR'
 
-      session.delta.must_equal 'countries' => {'removed' => ['AR']}
+      session.changes.must_equal 'countries' => {'removed' => ['AR']}
       session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
     end
 
     it 'Remove' do 
       session[:countries].remove 'AR'
 
-      session.delta.must_equal 'countries' => {'removed' => ['AR']}
+      session.changes.must_equal 'countries' => {'removed' => ['AR']}
       session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
     end
 
@@ -143,7 +143,7 @@ describe 'Index' do
       session[:countries].remove 'AR'
       session[:countries].add 'AR', name: 'Argentina'
 
-      session.delta.must_equal 'countries' => {'updated' => ['AR']}
+      session.changes.must_equal 'countries' => {'updated' => ['AR']}
       session.entries.must_equal 'countries' => {
         'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
         'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
@@ -154,7 +154,7 @@ describe 'Index' do
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
       session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
 
-      session.delta.must_equal 'countries' => {'updated' => ['AR', 'UY']}
+      session.changes.must_equal 'countries' => {'updated' => ['AR', 'UY']}
       session.entries.must_equal 'countries' => {
         'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd', 
         'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
@@ -162,7 +162,7 @@ describe 'Index' do
 
       session[:countries].revert 'AR'
 
-      session.delta.must_equal 'countries' => {'updated' => ['UY']}
+      session.changes.must_equal 'countries' => {'updated' => ['UY']}
       session.entries.must_equal 'countries' => {
         'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
         'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
@@ -173,14 +173,14 @@ describe 'Index' do
       session[:countries].remove 'AR'
       session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
 
-      session.delta.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY']}
+      session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY']}
       session.entries.must_equal 'countries' => {
         'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
       }
 
       session[:countries].revert 'AR'
 
-      session.delta.must_equal 'countries' => {'updated' => ['UY']}
+      session.changes.must_equal 'countries' => {'updated' => ['UY']}
       session.entries.must_equal 'countries' => {
         'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
         'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
@@ -192,7 +192,7 @@ describe 'Index' do
       session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
       session[:countries].add 'BR', name: 'Brasil'
 
-      session.delta.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY'], 'added' => ['BR']}
+      session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY'], 'added' => ['BR']}
       session.entries.must_equal 'countries' => {
         'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7',
         'BR' => 'd9623f086a613d36cf0cc5692c2542750e099ba9'
@@ -200,7 +200,7 @@ describe 'Index' do
 
       session.revert
 
-      session.delta.must_be_empty
+      session.changes.must_be_empty
       session.entries.must_equal 'countries' => {
         'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8', 
         'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'

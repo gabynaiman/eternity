@@ -5,7 +5,7 @@ describe 'Blob' do
   let(:data) { {'id' => 'AR', 'name' => 'Argentina'} }
   let(:serialization) { MessagePack.pack data }
   let(:sha1) { Digest::SHA1.hexdigest serialization }
-  let(:key) { Eternity.namespace[:blob][:xyz][sha1] }
+  let(:key) { Eternity.keyspace[:blob][:xyz][sha1] }
   let(:filename) { File.join(Eternity.data_path, 'blob', 'xyz', sha1) }
 
   def wait_and_read_file(filename)

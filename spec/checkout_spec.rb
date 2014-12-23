@@ -18,10 +18,10 @@ describe 'Checkout' do
     session.current_commit?.must_equal true
     session.current_commit.id.must_equal commit_1
     session.current_branch.must_equal 'test_branch'
-    session.branches.must_equal 'master' => commit_2, 
-                                'test_branch' => commit_1
+    session.branches.to_h.must_equal 'master' => commit_2, 
+                                     'test_branch' => commit_1
 
-    session.delta.must_be_empty
+    session.changes.must_be_empty
     session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
   end
 
@@ -44,9 +44,9 @@ describe 'Checkout' do
     session.current_commit?.must_equal true
     session.current_commit.id.must_equal commit_id
     session.current_branch.must_equal 'test_branch'
-    session.branches.must_equal 'test_branch' => commit_id
+    session.branches.to_h.must_equal 'test_branch' => commit_id
 
-    session.delta.must_be_empty
+    session.changes.must_be_empty
     session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
   end
 

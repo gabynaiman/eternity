@@ -9,7 +9,7 @@ describe 'Commit' do
 
     commit_id = session.commit author: 'User', message: 'Commit message'
 
-    session.delta.must_be_empty
+    session.changes.must_be_empty
     session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
     
     session.current_commit_id.must_equal commit_id

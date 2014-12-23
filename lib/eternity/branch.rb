@@ -8,15 +8,25 @@ module Eternity
     end
 
     def commit_id
-      Eternity.redis.call 'HGET', Eternity.namespace[:branches], name
+      self.class.all[name]
     end
 
     def commit_id=(id)
-      Eternity.redis.call 'HSET', Eternity.namespace[:branches], name, id
+      self.class.all[name] = id
+    end
+
+    def commit
+      Commit.new commit_id
     end
 
     def self.exists?(name)
-      Eternity.redis.call('HEXISTS', Eternity.namespace[:branches], name) == 1
+      all.key? name
+    end
+
+    private
+
+    def self.all
+      @all ||= Restruct::Hash.new key: Eternity.keyspace[:branches]
     end
 
   end

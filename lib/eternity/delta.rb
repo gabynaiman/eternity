@@ -1,46 +1,60 @@
 module Eternity
-  class Delta
+  class Delta < Restruct::NestedHash.new(DeltaSection)
 
-    attr_reader :session, :namespace
-    
-    def initialize(session)
-      @session = session
-      @namespace = session.namespace[:delta]
+    attr_reader :session
+
+    def initialize(session=nil)
+      @session = session || Session.new
+      super key: @session.key[:delta]
     end
 
-    def [](section)
-      DeltaSection.new self, section
-    end
+    def self.merge(*deltas)
+      delta = Hash.new do |h,k| 
+        h[k] = {
+          ADDED   => [],
+          UPDATED => [],
+          REMOVED => []
+        }
+      end
 
-    def empty?
-      nested_namespaces.empty?
-    end
+      base_added   = Hash.new { |h,k| h[k] = [] }
+      base_removed = Hash.new { |h,k| h[k] = [] }
 
-    def to_h
-      {}.tap do |hash|
-        each_section do |section, type|
-          hash[section] ||= {}
-          hash[section][type] = Eternity.redis.call('SMEMBERS', namespace[section][type]).sort
+      deltas.flatten.each do |d|
+        d.each_key do |section|
+          current = {
+            ADDED   => d[section][ADDED]   || [],
+            UPDATED => d[section][UPDATED] || [],
+            REMOVED => d[section][REMOVED] || []
+          }
+
+          added   = current[ADDED]   - base_removed[section]
+          updated = current[UPDATED] - base_added[section]
+          removed = current[REMOVED] - base_added[section]
+
+          base_added[section]   += added
+          base_removed[section] += removed
+
+          delta[section][ADDED]   += added
+          delta[section][UPDATED] += updated + (current[ADDED] & base_removed[section])
+          delta[section][REMOVED] += removed
+
+          delta[section][ADDED]   -= current[REMOVED]
+          delta[section][UPDATED] -= current[REMOVED]
+          delta[section][REMOVED] -= current[ADDED]
         end
       end
+
+      compact delta
     end
 
-    def destroy
-      each_section do |section, type|
-        Eternity.redis.call 'DEL', namespace[section][type]
-      end
-    end
-
-    private
-
-    def nested_namespaces
-      Eternity.redis.call 'KEYS', namespace['*']
-    end
-
-    def each_section
-      nested_namespaces.each do |k|
-        section, type = k.gsub(namespace[''], '').split(':')
-        yield section, type
+    def self.compact(delta)
+      delta.each_key do |section|
+        delta[section].each_key do |type|
+          delta[section][type].uniq!
+          delta[section].delete type if delta[section][type].empty?
+        end
+        delta.delete section if delta[section].empty?
       end
     end
 
