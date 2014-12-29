@@ -2,8 +2,8 @@ module Eternity
   class Blob
   
     def self.write(type, data)
-      serialization = MessagePack.pack data
-      sha1 = Digest::SHA1.hexdigest serialization
+      serialization = serialize data
+      sha1 = digest serialization
 
       write_redis type, sha1, serialization
       Thread.new { write_file type, sha1, serialization }
@@ -12,8 +12,19 @@ module Eternity
     end
 
     def self.read(type, sha1)
-      serialization = read_redis(type, sha1) || read_file(type, sha1)
-      MessagePack.unpack serialization
+      deserialize read_redis(type, sha1) || read_file(type, sha1)
+    end
+
+    def self.digest(string)
+      Digest::SHA1.hexdigest string
+    end
+
+    def self.serialize(data)
+      MessagePack.pack data
+    end
+
+    def self.deserialize(string)
+      MessagePack.unpack string
     end
 
     private
