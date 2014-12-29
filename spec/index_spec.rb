@@ -15,7 +15,7 @@ describe 'Index' do
       session[:countries].add 'AR', name: 'Argentina'
 
       session.changes.must_equal 'countries' => {'added' => ['AR']}
-      session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
+      session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
     end
 
     it 'Add existent' do
@@ -30,7 +30,7 @@ describe 'Index' do
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
       session.changes.must_equal 'countries' => {'added' => ['AR']}
-      session.entries.must_equal 'countries' => {'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd'}
+      session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina', code: 'ARG')}
     end
 
     it 'Add -> Remove' do
@@ -39,7 +39,7 @@ describe 'Index' do
       session[:countries].remove 'AR'
 
       session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
+      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
     end
 
     it 'Add -> Update -> Remove' do
@@ -49,7 +49,7 @@ describe 'Index' do
       session[:countries].remove 'AR'
 
       session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
+      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
     end
 
     it 'Update invalid' do
@@ -69,7 +69,7 @@ describe 'Index' do
       session[:countries].revert 'AR'
 
       session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
+      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
     end
 
     it 'Revert all' do
@@ -99,8 +99,8 @@ describe 'Index' do
 
       session.changes.must_be_empty
       session.entries.must_equal 'countries' => {
-        'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8', 
-        'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
+        'AR' => digest(name: 'Argentina'), 
+        'UY' => digest(name: 'Uruguay')
       }
     end
 
@@ -109,8 +109,8 @@ describe 'Index' do
 
       session.changes.must_equal 'countries' => {'updated' => ['AR']}
       session.entries.must_equal 'countries' => {
-        'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd', 
-        'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
+        'AR' => digest(name: 'Argentina', code: 'ARG'), 
+        'UY' => digest(name: 'Uruguay')
       }
     end
 
@@ -119,8 +119,8 @@ describe 'Index' do
 
       session.changes.must_equal 'countries' => {'updated' => ['AR']}
       session.entries.must_equal 'countries' => {
-        'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd', 
-        'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
+        'AR' => digest(name: 'Argentina', code: 'ARG'), 
+        'UY' => digest(name: 'Uruguay')
       }
     end
 
@@ -136,7 +136,7 @@ describe 'Index' do
       session[:countries].remove 'AR'
 
       session.changes.must_equal 'countries' => {'removed' => ['AR']}
-      session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
+      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
     end
 
     it 'Remove -> Add' do
@@ -145,8 +145,8 @@ describe 'Index' do
 
       session.changes.must_equal 'countries' => {'updated' => ['AR']}
       session.entries.must_equal 'countries' => {
-        'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
-        'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
+        'AR' => digest(name: 'Argentina'),
+        'UY' => digest(name: 'Uruguay')
       }
     end
 
@@ -156,16 +156,16 @@ describe 'Index' do
 
       session.changes.must_equal 'countries' => {'updated' => ['AR', 'UY']}
       session.entries.must_equal 'countries' => {
-        'AR' => '2fc541751e0a9488b6dedba1e9154396bdf657dd', 
-        'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
+        'AR' => digest(name: 'Argentina', code: 'ARG'), 
+        'UY' => digest(name: 'Uruguay', code: 'URU')
       }
 
       session[:countries].revert 'AR'
 
       session.changes.must_equal 'countries' => {'updated' => ['UY']}
       session.entries.must_equal 'countries' => {
-        'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
-        'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
+        'AR' => digest(name: 'Argentina'),
+        'UY' => digest(name: 'Uruguay', code: 'URU')
       }
     end
 
@@ -175,15 +175,15 @@ describe 'Index' do
 
       session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY']}
       session.entries.must_equal 'countries' => {
-        'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
+        'UY' => digest(name: 'Uruguay', code: 'URU')
       }
 
       session[:countries].revert 'AR'
 
       session.changes.must_equal 'countries' => {'updated' => ['UY']}
       session.entries.must_equal 'countries' => {
-        'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
-        'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7'
+        'AR' => digest(name: 'Argentina'),
+        'UY' => digest(name: 'Uruguay', code: 'URU')
       }
     end
 
@@ -194,16 +194,16 @@ describe 'Index' do
 
       session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY'], 'added' => ['BR']}
       session.entries.must_equal 'countries' => {
-        'UY' => '79f1d7fbec500784dc646fbe2595a69d7776cee7',
-        'BR' => 'd9623f086a613d36cf0cc5692c2542750e099ba9'
+        'UY' => digest(name: 'Uruguay', code: 'URU'),
+        'BR' => digest(name: 'Brasil')
       }
 
       session.revert
 
       session.changes.must_be_empty
       session.entries.must_equal 'countries' => {
-        'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8', 
-        'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
+        'AR' => digest(name: 'Argentina'), 
+        'UY' => digest(name: 'Uruguay')
       }
     end
 

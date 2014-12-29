@@ -28,6 +28,10 @@ class Minitest::Spec
     puts Eternity.redis_keys.sort
   end
 
+  def digest(data)
+    Blob.digest(Blob.serialize(data))
+  end
+
   before do
     Eternity.clean_redis
     Eternity.clean_file_system

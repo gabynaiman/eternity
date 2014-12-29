@@ -31,7 +31,7 @@ describe 'Pull' do
     other_session.current_commit_id.must_equal commit_1
     other_session.branches[other_session.current_branch].must_equal commit_1
     other_session.changes.must_be_empty
-    other_session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
+    other_session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
 
     other_session.pull
 
@@ -39,8 +39,8 @@ describe 'Pull' do
     other_session.branches[other_session.current_branch].must_equal commit_2
     other_session.changes.must_be_empty
     other_session.entries.must_equal 'countries' => {
-      'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
-      'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'
+      'AR' => digest(name: 'Argentina'),
+      'UY' => digest(name: 'Uruguay')
     }
   end
 
@@ -71,9 +71,9 @@ describe 'Pull' do
       commit.base_delta.must_equal 'countries' => {'added' => ['BR', 'UY']}
       commit.delta.must_be_empty
       commit.must_equal_index 'countries' => {
-        'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8', 
-        'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f',
-        'BR' => 'd9623f086a613d36cf0cc5692c2542750e099ba9'
+        'AR' => digest(name: 'Argentina'), 
+        'UY' => digest(name: 'Uruguay'),
+        'BR' => digest(name: 'Brasil')
       }
     end
 
@@ -81,12 +81,14 @@ describe 'Pull' do
     
     session.changes.must_be_empty
     session.entries.must_equal 'countries' => {
-      'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8',
-      'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f',
-      'BR' => 'd9623f086a613d36cf0cc5692c2542750e099ba9'
+      'AR' => digest(name: 'Argentina'), 
+      'UY' => digest(name: 'Uruguay'),
+      'BR' => digest(name: 'Brasil')
     }
   end
 
   # it 'Merge with conflicts'
+
+  # it 'Merge different changes for same object'
 
 end

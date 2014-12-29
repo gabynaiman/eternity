@@ -22,7 +22,7 @@ describe 'Checkout' do
                                      'test_branch' => commit_1
 
     session.changes.must_be_empty
-    session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
+    session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
   end
 
   it 'With uncommitted changes' do
@@ -47,7 +47,7 @@ describe 'Checkout' do
     session.branches.to_h.must_equal 'test_branch' => commit_id
 
     session.changes.must_be_empty
-    session.entries.must_equal 'countries' => {'AR' => '47516589a5d9b79cacb6f8be945d68bdccee22d8'}
+    session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
   end
 
   it 'Invalid branch' do
