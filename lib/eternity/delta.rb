@@ -1,5 +1,5 @@
 module Eternity
-  class Delta < Restruct::NestedHash.new(DeltaSection)
+  class Delta < Restruct::NestedHash.new(CollectionDelta)
 
     attr_reader :session
 
@@ -21,27 +21,27 @@ module Eternity
       base_removed = Hash.new { |h,k| h[k] = [] }
 
       deltas.flatten.each do |d|
-        d.each_key do |section|
+        d.each_key do |collection|
           current = {
-            ADDED   => d[section][ADDED]   || [],
-            UPDATED => d[section][UPDATED] || [],
-            REMOVED => d[section][REMOVED] || []
+            ADDED   => d[collection][ADDED]   || [],
+            UPDATED => d[collection][UPDATED] || [],
+            REMOVED => d[collection][REMOVED] || []
           }
 
-          added   = current[ADDED]   - base_removed[section]
-          updated = current[UPDATED] - base_added[section]
-          removed = current[REMOVED] - base_added[section]
+          added   = current[ADDED]   - base_removed[collection]
+          updated = current[UPDATED] - base_added[collection]
+          removed = current[REMOVED] - base_added[collection]
 
-          base_added[section]   += added
-          base_removed[section] += removed
+          base_added[collection]   += added
+          base_removed[collection] += removed
 
-          delta[section][ADDED]   += added
-          delta[section][UPDATED] += updated + (current[ADDED] & base_removed[section])
-          delta[section][REMOVED] += removed
+          delta[collection][ADDED]   += added
+          delta[collection][UPDATED] += updated + (current[ADDED] & base_removed[collection])
+          delta[collection][REMOVED] += removed
 
-          delta[section][ADDED]   -= current[REMOVED]
-          delta[section][UPDATED] -= current[REMOVED]
-          delta[section][REMOVED] -= current[ADDED]
+          delta[collection][ADDED]   -= current[REMOVED]
+          delta[collection][UPDATED] -= current[REMOVED]
+          delta[collection][REMOVED] -= current[ADDED]
         end
       end
 
@@ -49,12 +49,12 @@ module Eternity
     end
 
     def self.compact(delta)
-      delta.each_key do |section|
-        delta[section].each_key do |type|
-          delta[section][type].uniq!
-          delta[section].delete type if delta[section][type].empty?
+      delta.each_key do |collection|
+        delta[collection].each_key do |type|
+          delta[collection][type].uniq!
+          delta[collection].delete type if delta[collection][type].empty?
         end
-        delta.delete section if delta[section].empty?
+        delta.delete collection if delta[collection].empty?
       end
     end
 

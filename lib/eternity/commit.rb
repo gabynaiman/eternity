@@ -80,6 +80,11 @@ module Eternity
       history
     end
 
+    def delta_base_from(commit)
+      history = [self] + self.base_history_at(commit.id)[0..-2]
+      Delta.merge history.reverse.map(&:base_delta)
+    end
+
     def self.create(data)
       params = {
         time:       Time.now.strftime('%Y-%m-%dT%H:%M:%S%z'),

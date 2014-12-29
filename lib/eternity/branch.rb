@@ -26,7 +26,7 @@ module Eternity
     private
 
     def self.all
-      @all ||= Restruct::Hash.new key: Eternity.keyspace[:branches]
+      Restruct::Hash.new key: Eternity.keyspace[:branches]
     end
 
   end

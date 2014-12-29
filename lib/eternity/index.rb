@@ -1,5 +1,5 @@
 module Eternity
-  class Index < Restruct::NestedHash.new(IndexSection)
+  class Index < Restruct::NestedHash.new(CollectionIndex)
 
     attr_reader :session
 

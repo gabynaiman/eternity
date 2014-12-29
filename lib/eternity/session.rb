@@ -40,8 +40,8 @@ module Eternity
       !delta.empty?
     end
 
-    def [](section)
-      index[section]
+    def [](collection)
+      index[collection]
     end
 
     def commit(options)

@@ -1,5 +1,5 @@
 module Eternity
-  class DeltaSection
+  class CollectionDelta
 
     Changes = Restruct::NestedHash.new Restruct::Set
 
@@ -45,10 +45,8 @@ module Eternity
     alias_method :to_primitive, :to_h
 
     def dump
-      {}.tap do |h|
-        EVENTS.each do |e|
-          h[e] = changes[e].dump unless changes[e].empty?
-        end
+      EVENTS.each_with_object({}) do |e,h|
+        h[e] = changes[e].dump unless changes[e].empty?
       end
     end
 

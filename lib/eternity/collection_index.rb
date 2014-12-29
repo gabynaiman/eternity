@@ -1,5 +1,5 @@
 module Eternity
-  class IndexSection
+  class CollectionIndex
 
     def initialize(options)
       @index = options.delete :parent

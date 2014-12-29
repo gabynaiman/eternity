@@ -15,8 +15,5 @@ module Restruct
       split(separator).map { |s| Key.new s }
     end
 
-    def self.join(keys, separator=nil)
-      new keys.join(separator || Restruct.key_separator)
-    end
   end
 end
