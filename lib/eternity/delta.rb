@@ -8,7 +8,10 @@ module Eternity
       super key: @session.key[:delta]
     end
 
-    def self.merge(*deltas)
+    def self.merge(*args)
+      deltas = args.flatten
+      return deltas.first if deltas.count == 1
+
       delta = Hash.new do |h,k| 
         h[k] = {
           ADDED   => [],
@@ -20,33 +23,31 @@ module Eternity
       base_added   = Hash.new { |h,k| h[k] = [] }
       base_removed = Hash.new { |h,k| h[k] = [] }
 
-      deltas.flatten.each do |d|
-        d.each_key do |collection|
-          current = {
-            ADDED   => d[collection][ADDED]   || [],
-            UPDATED => d[collection][UPDATED] || [],
-            REMOVED => d[collection][REMOVED] || []
-          }
+      deltas.each do |current|
+        current.each_key do |collection|
+          EVENTS.each { |e| current[collection][e] ||= [] }
 
-          added   = current[ADDED]   - base_removed[collection]
-          updated = current[UPDATED] - base_added[collection]
-          removed = current[REMOVED] - base_added[collection]
+          added   = current[collection][ADDED]   - base_removed[collection]
+          updated = current[collection][UPDATED] - base_added[collection]
+          removed = current[collection][REMOVED] - base_added[collection]
 
           base_added[collection]   += added
           base_removed[collection] += removed
 
           delta[collection][ADDED]   += added
-          delta[collection][UPDATED] += updated + (current[ADDED] & base_removed[collection])
+          delta[collection][UPDATED] += updated + (current[collection][ADDED] & base_removed[collection])
           delta[collection][REMOVED] += removed
 
-          delta[collection][ADDED]   -= current[REMOVED]
-          delta[collection][UPDATED] -= current[REMOVED]
-          delta[collection][REMOVED] -= current[ADDED]
+          delta[collection][ADDED]   -= current[collection][REMOVED]
+          delta[collection][UPDATED] -= current[collection][REMOVED]
+          delta[collection][REMOVED] -= (current[collection][ADDED] + current[collection][UPDATED])
         end
       end
 
       compact delta
     end
+
+    private
 
     def self.compact(delta)
       delta.each_key do |collection|

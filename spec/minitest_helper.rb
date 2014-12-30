@@ -44,6 +44,13 @@ module Minitest::Assertions
       index.to_h.must_equal expected_entries
     end
   end
+
+  def assert_have_empty_index(actual_commit)
+    actual_commit.with_index do |index|
+      index.to_h.must_be_empty
+    end
+  end
 end
 
 Commit.infect_an_assertion :assert_equal_index, :must_equal_index
+Commit.infect_an_assertion :assert_have_empty_index, :must_have_empty_index, :unary

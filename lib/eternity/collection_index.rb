@@ -15,12 +15,12 @@ module Eternity
       hash.key? id
     end
 
-    def get(id)
+    def [](id)
       hash[id]
     end
 
-    def get_data(id)
-      Blob.read :data, hash[id]
+    def value_of(id)
+      key?(id) ? Blob.read(:data, hash[id]) : {}
     end
 
     def add(id, data)
@@ -52,7 +52,7 @@ module Eternity
       delta[name].revert id
       if index.session.current_commit?
         index.session.current_commit.with_index do |tmp_index|
-          hash[id] = tmp_index[name].get id
+          hash[id] = tmp_index[name][id]
         end
       else
         hash.delete id

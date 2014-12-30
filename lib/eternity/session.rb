@@ -4,7 +4,7 @@ module Eternity
     attr_reader :name, :index, :key, :branches
     
     def initialize(name=nil)
-      @name = name.to_s || Restruct.generate_key
+      @name = name ? name.to_s : Restruct.generate_key
       @key = Eternity.keyspace[:session][@name]
       @index = Index.new self
       @delta = Delta.new self
@@ -45,6 +45,8 @@ module Eternity
     end
 
     def commit(options)
+      raise 'Nothing to commit' unless changes?
+      
       commit! message: options.fetch(:message), 
               author: options.fetch(:author)
     end
@@ -109,7 +111,7 @@ module Eternity
                 message: "Merge #{branch.commit_id} into #{current_commit_id}",
                 parents: patch.commit_ids,
                 delta: Blob.write(:delta, {}),
-                base: patch.base.id,
+                base: patch.base_commit.id,
                 base_delta: Blob.write(:delta, patch.base_delta)
       end
     end
@@ -131,8 +133,6 @@ module Eternity
     attr_reader :delta, :current
 
     def commit!(options)
-      raise 'Nothing to commit' unless changes?
-
       options[:index] = Blob.write :index, index.dump
       options[:delta] ||= Blob.write :delta, delta.to_h
       options[:parents] ||= [current_commit_id].compact
