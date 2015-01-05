@@ -39,21 +39,25 @@ module Eternity
     end
 
     def self.write_file(type, sha1, serialization)
-      path = File.join Eternity.data_path, 'blob', type.to_s
-      filename = File.join path, sha1
+      filename = file_for type, sha1
       if !File.exists? filename
-        FileUtils.mkpath path unless Dir.exists? path
+        dirname = File.dirname filename
+        FileUtils.mkpath dirname unless Dir.exists? dirname
         File.write filename, serialization
       end
     end
 
     def self.read_file(type, sha1)
-      serialization = IO.read(File.join(Eternity.data_path, 'blob', type.to_s, sha1))
+      serialization = IO.read file_for(type, sha1)
       Thread.new { write_redis type, sha1, serialization }
       serialization
 
     rescue Errno::ENOENT
       raise "Blob not found. #{type.capitalize}: #{sha1}"
+    end
+
+    def self.file_for(type, sha1)
+      File.join Eternity.data_path, 'blob', type.to_s, sha1[0..1], sha1[2..-1]
     end
   
   end

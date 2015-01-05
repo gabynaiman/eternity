@@ -1,6 +1,7 @@
 require 'coverage_helper'
 require 'eternity'
 require 'minitest/autorun'
+require 'timeout'
 require 'turn'
 require 'pry-nav'
 

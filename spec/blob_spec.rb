@@ -6,13 +6,17 @@ describe 'Blob' do
   let(:serialization) { MessagePack.pack data }
   let(:sha1) { Digest::SHA1.hexdigest serialization }
   let(:key) { Eternity.keyspace[:blob][:xyz][sha1] }
-  let(:filename) { File.join(Eternity.data_path, 'blob', 'xyz', sha1) }
+  let(:filename) { File.join(Eternity.data_path, 'blob', 'xyz', sha1[0..1], sha1[2..-1]) }
 
   def wait_and_read_file(filename)
-    until File.exists?(filename) && File.size(filename) > 0
-      sleep 0.001
+    Timeout.timeout(5) do
+      until File.exists?(filename) && File.size(filename) > 0
+        sleep 0.001
+      end
+      IO.read filename
     end
-    IO.read filename
+  rescue Timeout::Error
+    raise "File not found: #{filename}"
   end
 
   it 'Write in redis and file system' do
