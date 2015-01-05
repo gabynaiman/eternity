@@ -1,5 +1,16 @@
 module Eternity
   class Blob
+
+    attr_reader :type, :sha1
+
+    def initialize(type, sha1)
+      @type = type
+      @sha1 = sha1
+    end
+
+    def value
+      sha1 ? Blob.read(type, sha1) : {}
+    end
   
     def self.write(type, data)
       serialization = serialize data

@@ -31,6 +31,12 @@ module Restruct
       redis.call('HLEN', key) == 0
     end
 
+    def size
+      redis.call 'HLEN', key
+    end
+    alias_method :count, :size
+    alias_method :length, :size
+
     def to_h
       ::Hash[redis.call('HGETALL', key).each_slice(2).to_a]
     end

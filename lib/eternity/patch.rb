@@ -29,27 +29,27 @@ module Eternity
 
             changes[ADDED].each do |id|
               if index[collection].key? id
-                data = ConflictResolver.resolve index[collection].value_of(id), 
-                                                target_index[collection].value_of(id), 
-                                                base_index[collection].value_of(id)
+                data = ConflictResolver.resolve index[collection][id].value, 
+                                                target_index[collection][id].value, 
+                                                base_index[collection][id].value
                 index[collection].update id, data
               else
-                index[collection].add id, target_index[collection].value_of(id)
+                index[collection].add id, target_index[collection][id].value
               end
             end
 
             changes[UPDATED].each do |id|
               if index[collection].key? id
                 if current_delta[collection].key?(UPDATED) && current_delta[collection][UPDATED].include?(id)
-                  data = ConflictResolver.resolve index[collection].value_of(id), 
-                                                  target_index[collection].value_of(id), 
-                                                  base_index[collection].value_of(id)
+                  data = ConflictResolver.resolve index[collection][id].value, 
+                                                  target_index[collection][id].value, 
+                                                  base_index[collection][id].value
                   index[collection].update id, data
                 else
-                  index[collection].update id, target_index[collection].value_of(id)
+                  index[collection].update id, target_index[collection][id].value
                 end
               else
-                index[collection].add id, target_index[collection].value_of(id)
+                index[collection].add id, target_index[collection][id].value
               end
             end
 

@@ -1,6 +1,8 @@
 module Eternity
   class CollectionIndex
 
+    DELEGATES = [:key?, :keys, :count, :size, :length]
+
     def initialize(options)
       @index = options.delete :parent
       @delta = Delta.new index.session
@@ -11,16 +13,20 @@ module Eternity
       hash.key.sections.last
     end
 
-    def key?(id)
-      hash.key? id
+    DELEGATES.each do |method|
+      define_method method do |*args, &block|
+        hash.send method, *args, &block
+      end
     end
 
     def [](id)
-      hash[id]
+      Blob.new :data, hash[id]
     end
 
-    def value_of(id)
-      key?(id) ? Blob.read(:data, hash[id]) : {}
+    def each
+      hash.keys.each do |id|
+        yield id, self[id]
+      end
     end
 
     def add(id, data)
@@ -52,7 +58,7 @@ module Eternity
       delta[name].revert id
       if index.session.current_commit?
         index.session.current_commit.with_index do |tmp_index|
-          hash[id] = tmp_index[name][id]
+          hash[id] = tmp_index[name][id].sha1
         end
       else
         hash.delete id
