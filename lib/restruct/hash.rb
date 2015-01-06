@@ -37,14 +37,19 @@ module Restruct
     alias_method :count, :size
     alias_method :length, :size
 
+    def each
+      keys.each { |field| yield field, self[field] }
+    end
+
+    def map
+      keys.map { |field| yield field, self[field] }
+    end
+
     def to_h
       ::Hash[redis.call('HGETALL', key).each_slice(2).to_a]
     end
     alias_method :to_primitive, :to_h
 
-    def each
-      keys.each { |field| yield field, self[field] }
-    end
 
   end
 end

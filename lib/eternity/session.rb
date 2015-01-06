@@ -128,6 +128,13 @@ module Eternity
       index.restore commit.index_dump
     end
 
+    def self.all
+      section = Eternity.keyspace.sections.count + 1
+      Eternity.redis.call('KEYS', Eternity.keyspace[:session]['*']).map do |key|
+        new Restruct::Key.new(key).sections[section]
+      end.uniq(&:name)
+    end
+
     private
 
     attr_reader :delta, :current

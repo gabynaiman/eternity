@@ -33,14 +33,18 @@ module Restruct
           keys.empty?
         end
 
+        def each
+          keys.each { |field| yield field, self[field] }
+        end
+
+        def map
+          keys.map { |field| yield field, self[field] }
+        end
+
         def to_h
           ::Hash[keys.map { |field| [field, self[field].to_primitive] }]
         end
         alias_method :to_primitive, :to_h
-
-        def each
-          keys.each { |field| yield field, self[field] }
-        end
 
         def dump
           {}.tap do |hash|

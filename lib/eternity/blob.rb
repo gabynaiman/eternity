@@ -38,6 +38,16 @@ module Eternity
       MessagePack.unpack string
     end
 
+    def self.clear_cache
+      Eternity.redis.call('KEYS', Eternity.keyspace[:blob]['*']).each_slice(1000) do |keys|
+        Eternity.redis.call 'DEL', *keys
+      end
+    end
+
+    def self.count
+      Eternity.redis.call('KEYS', Eternity.keyspace[:blob]['*']).count
+    end
+
     private
 
     def self.write_redis(type, sha1, serialization)
