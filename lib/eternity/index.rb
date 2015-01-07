@@ -22,5 +22,7 @@ module Eternity
       end
     end
 
+    alias_method :collections, :keys
+
   end
 end
