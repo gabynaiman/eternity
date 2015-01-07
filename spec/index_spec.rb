@@ -8,14 +8,14 @@ describe 'Index' do
 
     it 'Initial status' do
       session.changes.must_be_empty
-      session.entries.must_be_empty
+      session.index.must_be_empty
     end
 
     it 'Add' do
       session[:countries].add 'AR', name: 'Argentina'
 
       session.changes.must_equal 'countries' => {'added' => ['AR']}
-      session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
+      session.must_equal_index 'countries' => {'AR' => {'name' => 'Argentina'}}
     end
 
     it 'Add existent' do
@@ -30,7 +30,7 @@ describe 'Index' do
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
       session.changes.must_equal 'countries' => {'added' => ['AR']}
-      session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina', code: 'ARG')}
+      session.must_equal_index 'countries' => {'AR' => {'name' => 'Argentina', 'code' => 'ARG'}}
     end
 
     it 'Add -> Remove' do
@@ -39,7 +39,7 @@ describe 'Index' do
       session[:countries].remove 'AR'
 
       session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
+      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
     end
 
     it 'Add -> Update -> Remove' do
@@ -49,7 +49,7 @@ describe 'Index' do
       session[:countries].remove 'AR'
 
       session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
+      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
     end
 
     it 'Update invalid' do
@@ -69,7 +69,7 @@ describe 'Index' do
       session[:countries].revert 'AR'
 
       session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
+      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
     end
 
     it 'Revert all' do
@@ -79,7 +79,7 @@ describe 'Index' do
       session.revert
 
       session.changes.must_be_empty
-      session.entries.must_be_empty
+      session.index.must_be_empty
     end
 
     it 'Revert invalid' do
@@ -98,9 +98,9 @@ describe 'Index' do
       session.commit author: 'User', message: 'Commit message'
 
       session.changes.must_be_empty
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina'), 
-        'UY' => digest(name: 'Uruguay')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina'}, 
+        'UY' => {'name' => 'Uruguay'}
       }
     end
 
@@ -108,9 +108,9 @@ describe 'Index' do
       session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
       session.changes.must_equal 'countries' => {'updated' => ['AR']}
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina', code: 'ARG'), 
-        'UY' => digest(name: 'Uruguay')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina', 'code' => 'ARG'}, 
+        'UY' => {'name' => 'Uruguay'}
       }
     end
 
@@ -118,9 +118,9 @@ describe 'Index' do
       2.times { session[:countries].update 'AR', name: 'Argentina', code: 'ARG' }
 
       session.changes.must_equal 'countries' => {'updated' => ['AR']}
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina', code: 'ARG'), 
-        'UY' => digest(name: 'Uruguay')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina', 'code' => 'ARG'}, 
+        'UY' => {'name' => 'Uruguay'}
       }
     end
 
@@ -129,14 +129,14 @@ describe 'Index' do
       session[:countries].remove 'AR'
 
       session.changes.must_equal 'countries' => {'removed' => ['AR']}
-      session.entries.must_equal 'countries' => {'UY' => '5fdac9a212c2af7184bae7a1225147471bf9f31f'}
+      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
     end
 
     it 'Remove' do 
       session[:countries].remove 'AR'
 
       session.changes.must_equal 'countries' => {'removed' => ['AR']}
-      session.entries.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
+      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
     end
 
     it 'Remove -> Add' do
@@ -144,9 +144,9 @@ describe 'Index' do
       session[:countries].add 'AR', name: 'Argentina'
 
       session.changes.must_equal 'countries' => {'updated' => ['AR']}
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina'),
-        'UY' => digest(name: 'Uruguay')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina'},
+        'UY' => {'name' => 'Uruguay'}
       }
     end
 
@@ -155,17 +155,17 @@ describe 'Index' do
       session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
 
       session.changes.must_equal 'countries' => {'updated' => ['AR', 'UY']}
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina', code: 'ARG'), 
-        'UY' => digest(name: 'Uruguay', code: 'URU')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina', 'code' => 'ARG'}, 
+        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
       }
 
       session[:countries].revert 'AR'
 
       session.changes.must_equal 'countries' => {'updated' => ['UY']}
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina'),
-        'UY' => digest(name: 'Uruguay', code: 'URU')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina'},
+        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
       }
     end
 
@@ -174,16 +174,16 @@ describe 'Index' do
       session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
 
       session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY']}
-      session.entries.must_equal 'countries' => {
-        'UY' => digest(name: 'Uruguay', code: 'URU')
+      session.must_equal_index 'countries' => {
+        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
       }
 
       session[:countries].revert 'AR'
 
       session.changes.must_equal 'countries' => {'updated' => ['UY']}
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina'),
-        'UY' => digest(name: 'Uruguay', code: 'URU')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina'},
+        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
       }
     end
 
@@ -193,17 +193,17 @@ describe 'Index' do
       session[:countries].add 'BR', name: 'Brasil'
 
       session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY'], 'added' => ['BR']}
-      session.entries.must_equal 'countries' => {
-        'UY' => digest(name: 'Uruguay', code: 'URU'),
-        'BR' => digest(name: 'Brasil')
+      session.must_equal_index 'countries' => {
+        'UY' => {'name' => 'Uruguay', 'code' => 'URU'},
+        'BR' => {'name' => 'Brasil'}
       }
 
       session.revert
 
       session.changes.must_be_empty
-      session.entries.must_equal 'countries' => {
-        'AR' => digest(name: 'Argentina'), 
-        'UY' => digest(name: 'Uruguay')
+      session.must_equal_index 'countries' => {
+        'AR' => {'name' => 'Argentina'}, 
+        'UY' => {'name' => 'Uruguay'}
       }
     end
 

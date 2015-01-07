@@ -16,5 +16,11 @@ module Eternity
       end
     end
 
+    def entries
+      each_with_object({}) do |(name, collection_index), hash|
+        hash[name] = collection_index.entries
+      end
+    end
+
   end
 end

@@ -29,6 +29,19 @@ module Eternity
       end
     end
 
+    def each_with_object(object)
+      hash.keys.each do |id|
+        yield [id, self[id]], object
+      end
+      object
+    end
+
+    def map
+      hash.keys.map do |id|
+        yield id, self[id]
+      end
+    end
+
     def add(id, data)
       raise "Index add error. #{name.capitalize} #{id} already exists" if key? id
 
@@ -81,6 +94,12 @@ module Eternity
       hash.to_h
     end
     alias_method :to_primitive, :to_h
+
+    def entries
+      each_with_object({}) do |(id,blob), hash|
+        hash[id] = blob.value
+      end
+    end
 
     private
 

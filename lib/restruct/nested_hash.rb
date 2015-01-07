@@ -37,6 +37,11 @@ module Restruct
           keys.each { |field| yield field, self[field] }
         end
 
+        def each_with_object(object)
+          keys.each { |field| yield [field, self[field]], object }
+          object
+        end
+
         def map
           keys.map { |field| yield field, self[field] }
         end

@@ -10,7 +10,7 @@ describe 'Commit' do
     commit_id = session.commit author: 'User', message: 'Commit message'
 
     session.changes.must_be_empty
-    session.entries.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
+    session.must_equal_index 'countries' => {'AR' => {'name' => 'Argentina'}}
     
     session.current_commit_id.must_equal commit_id
     session.current_commit.time.must_be_instance_of Time
@@ -18,7 +18,7 @@ describe 'Commit' do
     session.current_commit.message.must_equal 'Commit message'
     session.current_commit.parents.must_equal []
     session.current_commit.delta.must_equal 'countries' => {'added' => ['AR']}
-    session.current_commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina')}
+    session.current_commit.must_equal_index 'countries' => {'AR' => {'name' => 'Argentina'}}
   end
 
   it 'Chained commits' do
@@ -35,8 +35,8 @@ describe 'Commit' do
     session.current_commit.parent_ids.must_equal [commit_1]
     session.current_commit.delta.must_equal 'countries' => {'added' => ['UY']}
     session.current_commit.must_equal_index 'countries' => {
-      'AR' => digest(name: 'Argentina'), 
-      'UY' => digest(name: 'Uruguay')
+      'AR' => {'name' => 'Argentina'}, 
+      'UY' => {'name' => 'Uruguay'}
     }
   end
 

@@ -28,10 +28,6 @@ module Eternity
       current[:branch] || 'master'
     end
 
-    def entries
-      index.to_h
-    end
-
     def changes
       delta.to_h
     end

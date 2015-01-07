@@ -29,10 +29,6 @@ class Minitest::Spec
     puts Eternity.redis_keys.sort
   end
 
-  def digest(data)
-    Blob.digest(Blob.serialize(data))
-  end
-
   before do
     Eternity.clean_redis
     Eternity.clean_file_system
@@ -40,18 +36,23 @@ class Minitest::Spec
 end
 
 module Minitest::Assertions
-  def assert_equal_index(expected_entries, actual_commit)
-    actual_commit.with_index do |index|
-      index.to_h.must_equal expected_entries
+  def assert_equal_commit_index(expected, commit)
+    commit.with_index do |index|
+      index.entries.must_equal expected
     end
   end
 
-  def assert_have_empty_index(actual_commit)
-    actual_commit.with_index do |index|
-      index.to_h.must_be_empty
+  def assert_have_empty_index(commit)
+    commit.with_index do |index|
+      index.must_be_empty
     end
+  end
+
+  def assert_equal_session_index(expected, session)
+    session.index.entries.must_equal expected
   end
 end
 
-Commit.infect_an_assertion :assert_equal_index, :must_equal_index
+Commit.infect_an_assertion :assert_equal_commit_index, :must_equal_index
 Commit.infect_an_assertion :assert_have_empty_index, :must_have_empty_index, :unary
+Session.infect_an_assertion :assert_equal_session_index, :must_equal_index
