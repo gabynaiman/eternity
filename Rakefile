@@ -10,6 +10,7 @@ end
 task :console do
   require 'pry'
   require 'eternity'
+  include Eternity
   ARGV.clear
   Pry.start
 end
