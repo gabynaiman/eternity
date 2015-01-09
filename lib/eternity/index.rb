@@ -1,28 +1,20 @@
 module Eternity
   class Index < Restruct::NestedHash.new(CollectionIndex)
 
-    attr_reader :session
-
-    def initialize(session=nil)
-      @session = session || Session.new
-      super key: @session.key[:index]
+    def initialize
+      super redis: Eternity.redis,
+            key: Eternity.keyspace[:index][Restruct.generate_key]
     end
 
-    def revert
-      if session.current_commit?
-        restore session.current_commit.index_dump
-      else
-        destroy
+    def write_blob
+      Blob.write :index, dump
+    end
+
+    def self.read_blob(sha1)
+      Index.new.tap do |index|
+        index.restore Blob.read :index, sha1
       end
     end
-
-    def entries
-      each_with_object({}) do |(name, collection_index), hash|
-        hash[name] = collection_index.entries
-      end
-    end
-
-    alias_method :collections, :keys
 
   end
 end

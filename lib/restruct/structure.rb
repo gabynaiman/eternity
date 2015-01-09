@@ -1,5 +1,5 @@
 module Restruct
-  class Object
+  class Structure
 
     attr_reader :redis, :key
 

@@ -1,212 +1,69 @@
 require 'minitest_helper'
 
-describe 'Index' do
+describe Index do
+
+  let(:index) { Index.new }
   
-  let(:session) { Session.new :test }
-
-  describe 'Before commit' do
-
-    it 'Initial status' do
-      session.changes.must_be_empty
-      session.index.must_be_empty
-    end
-
-    it 'Add' do
-      session[:countries].add 'AR', name: 'Argentina'
-
-      session.changes.must_equal 'countries' => {'added' => ['AR']}
-      session.must_equal_index 'countries' => {'AR' => {'name' => 'Argentina'}}
-    end
-
-    it 'Add existent' do
-      session[:countries].add 'AR', name: 'Argentina'
-
-      error = proc { session[:countries].add 'AR', name: 'Argentina' }.must_raise RuntimeError
-      error.message.must_equal 'Index add error. Countries AR already exists'
-    end
-
-    it 'Add -> Update' do
-      session[:countries].add 'AR', name: 'Argentina'
-      session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
-
-      session.changes.must_equal 'countries' => {'added' => ['AR']}
-      session.must_equal_index 'countries' => {'AR' => {'name' => 'Argentina', 'code' => 'ARG'}}
-    end
-
-    it 'Add -> Remove' do
-      session[:countries].add 'AR', name: 'Argentina'
-      session[:countries].add 'UY', name: 'Uruguay'
-      session[:countries].remove 'AR'
-
-      session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
-    end
-
-    it 'Add -> Update -> Remove' do
-      session[:countries].add 'AR', name: 'Argentina'
-      session[:countries].add 'UY', name: 'Uruguay'
-      session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
-      session[:countries].remove 'AR'
-
-      session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
-    end
-
-    it 'Update invalid' do
-      error = proc { session[:countries].update 'INVALID', name: 'Invalid' }.must_raise RuntimeError
-      error.message.must_equal 'Index update error. Countries INVALID not found'
-    end
-
-    it 'Remove invalid' do
-      error = proc { session[:countries].remove 'INVALID' }.must_raise RuntimeError
-      error.message.must_equal 'Index remove error. Countries INVALID not found'
-    end
-
-    it 'Revert' do
-      session[:countries].add 'AR', name: 'Argentina'
-      session[:countries].add 'UY', name: 'Uruguay'
-
-      session[:countries].revert 'AR'
-
-      session.changes.must_equal 'countries' => {'added' => ['UY']}
-      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
-    end
-
-    it 'Revert all' do
-      session[:countries].add 'AR', name: 'Argentina'
-      session[:cities].add 'CABA', name: 'Ciudad Autonoma de Buenos Aires'
-
-      session.revert
-
-      session.changes.must_be_empty
-      session.index.must_be_empty
-    end
-
-    it 'Revert invalid' do
-      error = proc { session[:countries].revert 'INVALID' }.must_raise RuntimeError
-      error.message.must_equal 'Index revert error. Countries INVALID not found'
-    end
-
+  it 'Initial status' do
+    index.must_be_empty
   end
 
-  describe 'After commit' do
+  it 'Insert' do
+    index[:countries].insert 'AR', name: 'Argentina'
 
-    before do
-      session[:countries].add 'AR', name: 'Argentina'
-      session[:countries].add 'UY', name: 'Uruguay'
-      
-      session.commit author: 'User', message: 'Commit message'
+    index.to_h.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
+  end
 
-      session.changes.must_be_empty
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina'}, 
-        'UY' => {'name' => 'Uruguay'}
-      }
-    end
+  it 'Insert existent' do
+    index[:countries].insert 'AR', name: 'Argentina'
 
-    it 'Update' do
-      session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
+    error = proc { index[:countries].insert 'AR', name: 'Argentina' }.must_raise RuntimeError
+    error.message.must_equal 'Countries AR already exists'
+  end
 
-      session.changes.must_equal 'countries' => {'updated' => ['AR']}
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina', 'code' => 'ARG'}, 
-        'UY' => {'name' => 'Uruguay'}
-      }
-    end
+  it 'Insert -> Update' do
+    index[:countries].insert 'AR', name: 'Argentina'
+    index[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
-    it 'Update twice' do
-      2.times { session[:countries].update 'AR', name: 'Argentina', code: 'ARG' }
+    index.to_h.must_equal 'countries' => {'AR' => digest(name: 'Argentina', code: 'ARG')}
+  end
 
-      session.changes.must_equal 'countries' => {'updated' => ['AR']}
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina', 'code' => 'ARG'}, 
-        'UY' => {'name' => 'Uruguay'}
-      }
-    end
+  it 'Insert -> Delete' do
+    index[:countries].insert 'AR', name: 'Argentina'
+    index[:countries].insert 'UY', name: 'Uruguay'
+    index[:countries].delete 'AR'
 
-    it 'Update -> Remove' do
-      session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
-      session[:countries].remove 'AR'
+    index.to_h.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
+  end
 
-      session.changes.must_equal 'countries' => {'removed' => ['AR']}
-      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
-    end
+  it 'Insert -> Update -> Delete' do
+    index[:countries].insert 'AR', name: 'Argentina'
+    index[:countries].insert 'UY', name: 'Uruguay'
+    index[:countries].update 'AR', name: 'Argentina', code: 'ARG'
+    index[:countries].delete 'AR'
 
-    it 'Remove' do 
-      session[:countries].remove 'AR'
+    index.to_h.must_equal 'countries' => {'UY' => digest(name: 'Uruguay')}
+  end
 
-      session.changes.must_equal 'countries' => {'removed' => ['AR']}
-      session.must_equal_index 'countries' => {'UY' => {'name' => 'Uruguay'}}
-    end
+  it 'Update invalid' do
+    error = proc { index[:countries].update 'INVALID', name: 'Invalid' }.must_raise RuntimeError
+    error.message.must_equal 'Countries INVALID not found'
+  end
 
-    it 'Remove -> Add' do
-      session[:countries].remove 'AR'
-      session[:countries].add 'AR', name: 'Argentina'
+  it 'Delete invalid' do
+    error = proc { index[:countries].delete 'INVALID' }.must_raise RuntimeError
+    error.message.must_equal 'Countries INVALID not found'
+  end
 
-      session.changes.must_equal 'countries' => {'updated' => ['AR']}
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina'},
-        'UY' => {'name' => 'Uruguay'}
-      }
-    end
+  it 'Write/Read blob' do
+    index[:countries].insert 'AR', name: 'Argentina'
+    index[:countries].insert 'UY', name: 'Uruguay'
 
-    it 'Revert updated' do
-      session[:countries].update 'AR', name: 'Argentina', code: 'ARG'
-      session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
+    sha1 = index.write_blob
+    index_2 = Index.read_blob sha1
 
-      session.changes.must_equal 'countries' => {'updated' => ['AR', 'UY']}
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina', 'code' => 'ARG'}, 
-        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
-      }
-
-      session[:countries].revert 'AR'
-
-      session.changes.must_equal 'countries' => {'updated' => ['UY']}
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina'},
-        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
-      }
-    end
-
-    it 'Revert removed' do
-      session[:countries].remove 'AR'
-      session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
-
-      session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY']}
-      session.must_equal_index 'countries' => {
-        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
-      }
-
-      session[:countries].revert 'AR'
-
-      session.changes.must_equal 'countries' => {'updated' => ['UY']}
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina'},
-        'UY' => {'name' => 'Uruguay', 'code' => 'URU'}
-      }
-    end
-
-    it 'Revert all' do
-      session[:countries].remove 'AR'
-      session[:countries].update 'UY', name: 'Uruguay', code: 'URU'
-      session[:countries].add 'BR', name: 'Brasil'
-
-      session.changes.must_equal 'countries' => {'removed' => ['AR'], 'updated' => ['UY'], 'added' => ['BR']}
-      session.must_equal_index 'countries' => {
-        'UY' => {'name' => 'Uruguay', 'code' => 'URU'},
-        'BR' => {'name' => 'Brasil'}
-      }
-
-      session.revert
-
-      session.changes.must_be_empty
-      session.must_equal_index 'countries' => {
-        'AR' => {'name' => 'Argentina'}, 
-        'UY' => {'name' => 'Uruguay'}
-      }
-    end
-
+    index.key.wont_equal index_2.key
+    index.to_h.must_equal index_2.to_h
   end
 
 end

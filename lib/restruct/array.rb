@@ -1,5 +1,5 @@
 module Restruct
-  class Array < Object
+  class Array < Structure
 
     include Enumerable
 
@@ -10,7 +10,10 @@ module Restruct
     def push(element)
       redis.call 'RPUSH', key, element
     end
-    alias_method :<<, :push
+    
+    def <<(element)
+      push element
+    end
 
     def size
       redis.call 'LLEN', key

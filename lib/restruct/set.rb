@@ -1,5 +1,5 @@
 module Restruct
-  class Set < Object
+  class Set < Structure
 
     include Enumerable
 

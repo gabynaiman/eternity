@@ -4,10 +4,10 @@ require 'securerandom'
 require 'set'
 
 require_relative 'restruct/key'
-require_relative 'restruct/object'
+require_relative 'restruct/structure'
 require_relative 'restruct/hash'
-require_relative 'restruct/set'
 require_relative 'restruct/nested_hash'
+require_relative 'restruct/set'
 require_relative 'restruct/array'
 require_relative 'restruct/marshal_array'
 

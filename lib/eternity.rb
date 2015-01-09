@@ -4,17 +4,17 @@ require 'msgpack'
 require 'class_config'
 require 'logger'
 require 'fileutils'
-require 'securerandom'
+require 'forwardable'
 
 require_relative 'restruct'
 
 module Eternity
 
-  ADDED   = 'added'.freeze
-  UPDATED = 'updated'.freeze
-  REMOVED = 'removed'.freeze
+  # ADDED   = 'added'.freeze
+  # UPDATED = 'updated'.freeze
+  # REMOVED = 'removed'.freeze
 
-  EVENTS = [ADDED, UPDATED, REMOVED].freeze
+  # EVENTS = [ADDED, UPDATED, REMOVED].freeze
 
   extend ClassConfig
 
@@ -43,12 +43,15 @@ end
 require_relative 'eternity/version'
 
 require_relative 'eternity/blob'
-require_relative 'eternity/branch'
-require_relative 'eternity/commit'
 require_relative 'eternity/session'
+require_relative 'eternity/object_tracker'
+require_relative 'eternity/collection_tracker'
+require_relative 'eternity/tracker'
 require_relative 'eternity/collection_index'
 require_relative 'eternity/index'
-require_relative 'eternity/collection_delta'
-require_relative 'eternity/delta'
-require_relative 'eternity/patch'
-require_relative 'eternity/conflict_resolver'
+require_relative 'eternity/commit'
+# require_relative 'eternity/branch'
+# require_relative 'eternity/collection_delta'
+# require_relative 'eternity/delta'
+# require_relative 'eternity/patch'
+# require_relative 'eternity/conflict_resolver'

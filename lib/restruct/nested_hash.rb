@@ -2,7 +2,7 @@ module Restruct
   class NestedHash
     
     def self.new(type)
-      Class.new Object do
+      Class.new Structure do
         
         const_set :TYPE, type
 
@@ -52,10 +52,8 @@ module Restruct
         alias_method :to_primitive, :to_h
 
         def dump
-          {}.tap do |hash|
-            each do |field, value|
-              hash[field] = value.dump
-            end
+          each_with_object({}) do |(field, value), hash|
+            hash[field] = value.dump
           end
         end
 

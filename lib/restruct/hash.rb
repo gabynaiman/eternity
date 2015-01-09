@@ -1,5 +1,5 @@
 module Restruct
-  class Hash < Object
+  class Hash < Structure
 
     def [](field)
       redis.call 'HGET', key, field
