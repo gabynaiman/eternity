@@ -37,22 +37,12 @@ module Eternity
       current[:branch] || 'master'
     end
 
-    def with_index
-      index = current_commit? ? current_commit.index : Index.new
-      yield index
-    ensure
-      index.destroy
-    end
-
     def commit(options)
       raise 'Nothing to commit' unless changes?
       
       options[:parents] ||= current_commit? ? [current_commit.id] : []
       options[:delta] = Blob.write :delta, delta
-      options[:index] = with_index do |index|
-        index.apply delta
-        index.write_blob
-      end
+      options[:index] = write_index
       
       Commit.create(options).tap do |commit|
         current[:commit] = commit.id
@@ -98,6 +88,20 @@ module Eternity
     private
 
     attr_reader :tracker, :current
+
+    def with_index
+      index = current_commit? ? current_commit.index : Index.new
+      yield index
+    ensure
+      index.destroy
+    end
+
+    def write_index
+      with_index do |index|
+        index.apply delta
+        index.write_blob
+      end
+    end
 
   end
 end
