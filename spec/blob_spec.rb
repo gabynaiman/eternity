@@ -45,7 +45,7 @@ describe Blob do
 
   it 'Read invalid sha1' do
     error = proc { Blob.read :xyz, 'invalid_sha1' }.must_raise RuntimeError
-    error.message.must_equal 'Blob not found. Xyz: invalid_sha1'
+    error.message.must_equal 'Blob not found: xyz -> invalid_sha1'
   end
 
 end

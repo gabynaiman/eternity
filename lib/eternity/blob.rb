@@ -81,7 +81,7 @@ module Eternity
         serialization
 
       rescue Errno::ENOENT
-        raise "Blob not found. #{type.capitalize}: #{sha1}"
+        raise "Blob not found: #{type} -> #{sha1}"
       end
 
       def file_for(type, sha1)
