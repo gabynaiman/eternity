@@ -16,6 +16,8 @@ module Eternity
 
   # EVENTS = [ADDED, UPDATED, REMOVED].freeze
 
+  TIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z'
+
   extend ClassConfig
 
   attr_config :redis, Redic.new
@@ -50,7 +52,7 @@ require_relative 'eternity/tracker'
 require_relative 'eternity/collection_index'
 require_relative 'eternity/index'
 require_relative 'eternity/commit'
-# require_relative 'eternity/branch'
+require_relative 'eternity/branch'
 # require_relative 'eternity/collection_delta'
 # require_relative 'eternity/delta'
 # require_relative 'eternity/patch'

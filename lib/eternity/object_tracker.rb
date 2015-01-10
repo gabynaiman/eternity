@@ -26,7 +26,7 @@ module Eternity
     end
 
     def flatten
-      change = send "flatten_#{changes.first['event']}_#{changes.last['event']}"
+      change = send "flatten_#{changes.first['action']}_#{changes.last['action']}"
       expand change if change
     end
 
@@ -39,8 +39,8 @@ module Eternity
 
     attr_reader :changes
 
-    def track(event, data=nil)
-      change = {'event' => event}
+    def track(action, data=nil)
+      change = {'action' => action}
       change['blob'] = Blob.write(:data, data) if data
       changes << change
     end
@@ -57,7 +57,7 @@ module Eternity
     end
 
     def flatten_insert_update
-      {'event' => INSERT, 'blob' => changes.last['blob']}
+      {'action' => INSERT, 'blob' => changes.last['blob']}
     end
 
     def flatten_insert_delete
@@ -65,7 +65,7 @@ module Eternity
     end
 
     def flatten_update_insert
-      {'event' => UPDATE, 'blob' => changes.last['blob']}
+      {'action' => UPDATE, 'blob' => changes.last['blob']}
     end
 
     def flatten_update_update
@@ -77,11 +77,11 @@ module Eternity
     end
 
     def flatten_delete_insert
-      {'event' => UPDATE, 'blob' => changes.last['blob']}
+      {'action' => UPDATE, 'blob' => changes.last['blob']}
     end
 
     def flatten_delete_update
-      {'event' => UPDATE, 'blob' => changes.last['blob']}
+      {'action' => UPDATE, 'blob' => changes.last['blob']}
     end
 
     def flatten_delete_delete

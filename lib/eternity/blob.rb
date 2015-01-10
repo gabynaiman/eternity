@@ -30,8 +30,13 @@ module Eternity
       Digest::SHA1.hexdigest string
     end
 
+    def self.sanitize(data)
+      data.each { |k,v| data[k] = v.strftime TIME_FORMAT if v.is_a? Time }
+      data
+    end
+
     def self.serialize(data)
-      MessagePack.pack data
+      MessagePack.pack sanitize(data)
     end
 
     def self.deserialize(string)

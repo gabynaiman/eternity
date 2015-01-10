@@ -12,8 +12,8 @@ describe Tracker do
   it 'Insert' do
     tracker[:countries].insert 'AR', name: 'Argentina'
 
-    tracker.to_h.must_equal 'countries' => {'AR' => [{'event' => 'insert', 'blob' => digest(name: 'Argentina')}]}
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    tracker.to_h.must_equal 'countries' => {'AR' => [{'action' => 'insert', 'blob' => digest(name: 'Argentina')}]}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
   end
 
   it 'Insert -> Update' do
@@ -21,10 +21,10 @@ describe Tracker do
     tracker[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
     tracker.to_h.must_equal 'countries' => {'AR' => [
-      {'event' => 'insert', 'blob' => digest(name: 'Argentina')},
-      {'event' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')}
+      {'action' => 'insert', 'blob' => digest(name: 'Argentina')},
+      {'action' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')}
     ]}
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'insert', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
   end
 
   it 'Insert -> Delete' do
@@ -33,8 +33,8 @@ describe Tracker do
 
     tracker.to_h.must_equal 'countries' => {
       'AR' => [
-        {'event' => 'insert', 'blob' => digest(name: 'Argentina')},
-        {'event' => 'delete'}
+        {'action' => 'insert', 'blob' => digest(name: 'Argentina')},
+        {'action' => 'delete'}
       ]
     }
     tracker.flatten.must_be_empty
@@ -43,8 +43,8 @@ describe Tracker do
   it 'Update' do
     tracker[:countries].update 'AR', name: 'Argentina', code: 'ARG'
 
-    tracker.to_h.must_equal 'countries' => {'AR' => [{'event' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')}]}
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
+    tracker.to_h.must_equal 'countries' => {'AR' => [{'action' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')}]}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
   end
 
   it 'Update -> Delete' do
@@ -53,11 +53,11 @@ describe Tracker do
 
     tracker.to_h.must_equal 'countries' => {
       'AR' => [
-        {'event' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')},
-        {'event' => 'delete'}
+        {'action' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')},
+        {'action' => 'delete'}
       ]
     }
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'delete'}}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'delete'}}
   end
 
   it 'Update -> Delete -> Insert' do
@@ -67,19 +67,19 @@ describe Tracker do
 
     tracker.to_h.must_equal 'countries' => {
       'AR' => [
-        {'event' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')},
-        {'event' => 'delete'},
-        {'event' => 'insert', 'blob' => digest(name: 'Argentina')}
+        {'action' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')},
+        {'action' => 'delete'},
+        {'action' => 'insert', 'blob' => digest(name: 'Argentina')}
       ]
     }
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'update', 'data' => {'name' => 'Argentina'}}}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina'}}}
   end
 
   it 'Delete' do
     tracker[:countries].delete 'AR'
 
-    tracker.to_h.must_equal 'countries' => {'AR' => [{'event' => 'delete'}]}
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'delete'}}
+    tracker.to_h.must_equal 'countries' => {'AR' => [{'action' => 'delete'}]}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'delete'}}
   end
 
   it 'Delete -> Insert' do
@@ -88,11 +88,11 @@ describe Tracker do
 
     tracker.to_h.must_equal 'countries' => {
       'AR' => [
-        {'event' => 'delete'},
-        {'event' => 'insert', 'blob' => digest(name: 'Argentina')}
+        {'action' => 'delete'},
+        {'action' => 'insert', 'blob' => digest(name: 'Argentina')}
       ]
     }
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'update', 'data' => {'name' => 'Argentina'}}}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina'}}}
   end
 
   it 'Delete -> Insert -> Update' do
@@ -102,12 +102,12 @@ describe Tracker do
 
     tracker.to_h.must_equal 'countries' => {
       'AR' => [
-        {'event' => 'delete'},
-        {'event' => 'insert', 'blob' => digest(name: 'Argentina')},
-        {'event' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')}
+        {'action' => 'delete'},
+        {'action' => 'insert', 'blob' => digest(name: 'Argentina')},
+        {'action' => 'update', 'blob' => digest(name: 'Argentina', code: 'ARG')}
       ]
     }
-    tracker.flatten.must_equal 'countries' => {'AR' => {'event' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
   end
 
   it 'Revert' do
@@ -116,8 +116,8 @@ describe Tracker do
 
     tracker[:countries].revert 'AR'
 
-    tracker.to_h.must_equal 'countries' => {'UY' => [{'event' => 'insert', 'blob' => digest(name: 'Uruguay')}]}
-    tracker.flatten.must_equal 'countries' => {'UY' => {'event' => 'insert', 'data' => {'name' => 'Uruguay'}}}
+    tracker.to_h.must_equal 'countries' => {'UY' => [{'action' => 'insert', 'blob' => digest(name: 'Uruguay')}]}
+    tracker.flatten.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
   end
 
   it 'Revert all' do
