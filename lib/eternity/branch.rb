@@ -1,23 +1,26 @@
 module Eternity
   class Branch
+    class << self
 
-    def self.[](name)
-      Commit.new branches[name] if exists? name
-    end
+      def [](name)
+        Commit.new branches[name] if exists? name
+      end
 
-    def self.[]=(name, commit_id)
-      branches[name] = commit_id
-    end
+      def []=(name, commit_id)
+        branches[name] = commit_id
+      end
 
-    def self.exists?(name)
-      branches.key? name
-    end
+      def exists?(name)
+        branches.key? name
+      end
 
-    def self.branches
-      @branches ||= Restruct::Hash.new redis: Eternity.redis,
-                                       key: Eternity.keyspace[:branches]
+      private
+
+      def branches
+        @branches ||= Restruct::Hash.new redis: Eternity.redis,
+                                         key: Eternity.keyspace[:branches]
+      end
+
     end
-    private_class_method :branches
-    
   end
 end
