@@ -39,16 +39,9 @@ module Eternity
 
     def commit(options)
       raise 'Nothing to commit' unless changes?
-      
-      options[:parents] ||= current_commit? ? [current_commit.id] : []
-      options[:delta] = Blob.write :delta, delta
-      options[:index] = write_index
-      
-      Commit.create(options).tap do |commit|
-        current[:commit] = commit.id
-        branches[current_branch] = commit.id
-        tracker.clear
-      end
+
+      commit! message: options.fetch(:message), 
+              author: options.fetch(:author)
     end
 
     def branch(name)
@@ -85,6 +78,26 @@ module Eternity
       Branch[current_branch] = current_commit.id
     end
 
+    def pull
+      raise "Can't pull with uncommitted changes" if changes?
+      raise "Branch not found: #{current_branch}" unless Branch.exists? current_branch
+
+      target_commit = Branch[current_branch]
+      if target_commit.fast_forward? current_commit
+        branches[current_branch] = target_commit.id
+        current[:commit] = target_commit.id
+      else
+        patch = Patch.new current_commit, target_commit
+        commit! author: 'System',
+                message: "Merge #{target_commit.id} into #{current_commit.id}",
+                parents: patch.commit_ids,
+                delta: Blob.write(:delta, {}),
+                index: write_index(patch.delta),
+                base: patch.base_commit.id,
+                base_delta: Blob.write(:delta, patch.base_delta)
+      end
+    end
+
     private
 
     attr_reader :tracker, :current
@@ -96,10 +109,22 @@ module Eternity
       index.destroy
     end
 
-    def write_index
+    def write_index(delta=nil)
       with_index do |index|
         index.apply delta
         index.write_blob
+      end
+    end
+
+    def commit!(options)
+      options[:parents] ||= current_commit? ? [current_commit.id] : []
+      options[:delta]   ||= Blob.write :delta, delta
+      options[:index]   ||= write_index delta
+
+      Commit.create(options).tap do |commit|
+        current[:commit] = commit.id
+        branches[current_branch] = commit.id
+        tracker.clear
       end
     end
 
