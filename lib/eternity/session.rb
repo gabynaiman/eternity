@@ -91,7 +91,6 @@ module Eternity
         commit! author: 'System',
                 message: "Merge #{target_commit.id} into #{current_commit.id}",
                 parents: patch.commit_ids,
-                delta: nil,
                 index: write_index(patch.index_delta),
                 base: patch.base_commit.id,
                 base_delta: Blob.write(:delta, patch.base_delta)
@@ -125,9 +124,10 @@ module Eternity
     end
 
     def commit!(options)
+      changes = delta
       options[:parents] ||= current_commit? ? [current_commit.id] : []
-      options[:delta]   ||= Blob.write :delta, delta
-      options[:index]   ||= write_index delta
+      options[:delta]   ||= Blob.write :delta, changes
+      options[:index]   ||= write_index changes
 
       tracker.clear
         

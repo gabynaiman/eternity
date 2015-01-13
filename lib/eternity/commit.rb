@@ -47,6 +47,7 @@ module Eternity
     end
 
     def fast_forward?(commit)
+      return true unless commit
       return commit.nil? if base.nil?
       base.id == commit.id || base.fast_forward?(commit)
     end

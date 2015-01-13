@@ -30,8 +30,14 @@ module Restruct
         end
 
         def empty?
-          keys.empty?
+          size == 0
         end
+
+        def size
+          redis.call('KEYS', key['*']).count
+        end
+        alias_method :count, :size
+        alias_method :length, :size
 
         def each
           keys.each { |field| yield field, self[field] }

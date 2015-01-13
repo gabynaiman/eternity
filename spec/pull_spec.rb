@@ -16,6 +16,16 @@ describe Session, 'Pull' do
     error.message.must_equal 'Branch not found: master'
   end
 
+  it 'Without previous commit' do
+    commit_id = '123456789'
+    Branch[:master] = commit_id
+
+    session.pull
+
+    session.current_commit.id.must_equal commit_id
+    session.branches[session.current_branch].must_equal commit_id
+  end
+
   it 'Fast-forward' do
     session[:countries].insert 'AR', name: 'Argentina'
     commit_1 = session.commit author: 'User', message: 'Commit 1'
