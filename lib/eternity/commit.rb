@@ -27,12 +27,15 @@ module Eternity
       parent_ids.map { |id| Commit.new id }
     end
 
-    def index
-      Index.read_blob data['index']
+    def with_index
+      index = Index.read_blob data['index']
+      yield index
+    ensure
+      index.destroy
     end
 
     def delta
-      Blob.read :delta, data['delta']
+      data['delta'] ? Blob.read(:delta, data['delta']) : {}
     end
 
     def base
@@ -55,11 +58,6 @@ module Eternity
       history
     end
 
-    def delta_base_from(commit)
-      history = [self] + self.base_history_at(commit)[0..-2]
-      {} # Delta.merge history.reverse.map(&:base_delta)
-    end
-    
     def self.create(options)
       data = {
         time:       Time.now,
@@ -75,7 +73,7 @@ module Eternity
       new Blob.write(:commit, data)
     end
 
-    def self.find_base(commit_1, commit_2)
+    def self.base_of(commit_1, commit_2)
       history_1 = []
       history_2 = []
 

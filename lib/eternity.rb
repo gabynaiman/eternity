@@ -10,11 +10,9 @@ require_relative 'restruct'
 
 module Eternity
 
-  # ADDED   = 'added'.freeze
-  # UPDATED = 'updated'.freeze
-  # REMOVED = 'removed'.freeze
-
-  # EVENTS = [ADDED, UPDATED, REMOVED].freeze
+  INSERT = 'insert'.freeze
+  UPDATE = 'update'.freeze
+  DELETE = 'delete'.freeze
 
   TIME_FORMAT = '%Y-%m-%dT%H:%M:%S%z'
 
@@ -54,4 +52,5 @@ require_relative 'eternity/index'
 require_relative 'eternity/commit'
 require_relative 'eternity/branch'
 require_relative 'eternity/patch'
-# require_relative 'eternity/conflict_resolver'
+require_relative 'eternity/track_flatter'
+require_relative 'eternity/conflict_resolver'

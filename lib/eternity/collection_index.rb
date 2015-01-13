@@ -12,6 +12,11 @@ module Eternity
       hash.key.sections.last
     end
 
+    def [](id)
+      return nil unless hash.key? id
+      Blob.new :data, hash[id]
+    end
+
     def insert(id, data)
       raise "#{collection_name.capitalize} #{id} already exists" if hash.key? id
       hash[id] = Blob.write :data, data

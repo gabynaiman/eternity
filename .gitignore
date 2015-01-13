@@ -20,5 +20,3 @@ tmp
 *.o
 *.a
 mkmf.log
-lib/eternity_old
-spec_old/

@@ -29,7 +29,7 @@ describe Session, 'Commit' do
       current_commit.message.must_equal 'Commit message'
       current_commit.parents.must_equal []
       current_commit.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
-      current_commit.index.to_h.must_equal 'countries' => {'AR' => digest(name: 'Argentina')}
+      current_commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina')}
     end
   end
 
@@ -47,7 +47,7 @@ describe Session, 'Commit' do
       current_commit.message.must_equal 'Commit 2'
       current_commit.parent_ids.must_equal [commit_1.id]
       current_commit.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
-      current_commit.index.to_h.must_equal 'countries' => {
+      current_commit.must_equal_index 'countries' => {
         'AR' => digest(name: 'Argentina'), 
         'UY' => digest(name: 'Uruguay')
       }

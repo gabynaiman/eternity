@@ -91,8 +91,8 @@ module Eternity
         commit! author: 'System',
                 message: "Merge #{target_commit.id} into #{current_commit.id}",
                 parents: patch.commit_ids,
-                delta: Blob.write(:delta, {}),
-                index: write_index(patch.delta),
+                delta: nil,
+                index: write_index(patch.index_delta),
                 base: patch.base_commit.id,
                 base_delta: Blob.write(:delta, patch.base_delta)
       end
@@ -102,14 +102,22 @@ module Eternity
 
     attr_reader :tracker, :current
 
-    def with_index
-      index = current_commit? ? current_commit.index : Index.new
+    def with_index(&block)
+      if current_commit?
+        current_commit.with_index(&block)
+      else
+        with_new_index(&block)
+      end
+    end
+
+    def with_new_index
+      index = Index.new
       yield index
     ensure
       index.destroy
     end
 
-    def write_index(delta=nil)
+    def write_index(delta)
       with_index do |index|
         index.apply delta
         index.write_blob
@@ -121,10 +129,11 @@ module Eternity
       options[:delta]   ||= Blob.write :delta, delta
       options[:index]   ||= write_index delta
 
+      tracker.clear
+        
       Commit.create(options).tap do |commit|
         current[:commit] = commit.id
         branches[current_branch] = commit.id
-        tracker.clear
       end
     end
 
