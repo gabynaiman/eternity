@@ -21,6 +21,10 @@ module Eternity
       !tracker.empty?
     end
 
+    def changes_count
+      tracker.count
+    end
+
     def delta
       tracker.flatten
     end
@@ -101,6 +105,20 @@ module Eternity
 
     attr_reader :tracker, :current
 
+    def commit!(options)
+      changes = delta
+      options[:parents] ||= current_commit? ? [current_commit.id] : []
+      options[:delta]   ||= write_delta changes
+      options[:index]   ||= write_index changes
+
+      tracker.clear
+        
+      Commit.create(options).tap do |commit|
+        current[:commit] = commit.id
+        branches[current_branch] = commit.id
+      end
+    end
+
     def with_index(&block)
       if current_commit?
         current_commit.with_index(&block)
@@ -123,18 +141,8 @@ module Eternity
       end
     end
 
-    def commit!(options)
-      changes = delta
-      options[:parents] ||= current_commit? ? [current_commit.id] : []
-      options[:delta]   ||= Blob.write :delta, changes
-      options[:index]   ||= write_index changes
-
-      tracker.clear
-        
-      Commit.create(options).tap do |commit|
-        current[:commit] = commit.id
-        branches[current_branch] = commit.id
-      end
+    def write_delta(delta)
+      Blob.write :delta, delta
     end
 
   end
