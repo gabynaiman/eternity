@@ -19,7 +19,7 @@ module Eternity
         sha1 = digest serialization
 
         write_redis type, sha1, serialization
-        Thread.new { write_file type, sha1, serialization }
+        write_file type, sha1, serialization
 
         sha1
       end
@@ -77,7 +77,7 @@ module Eternity
 
       def read_file(type, sha1)
         serialization = IO.read file_for(type, sha1)
-        Thread.new { write_redis type, sha1, serialization }
+        write_redis type, sha1, serialization
         serialization
 
       rescue Errno::ENOENT
