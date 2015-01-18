@@ -33,7 +33,7 @@ class Minitest::Spec
     Blob.digest(Blob.serialize(data))
   end
 
-  before do
+  after do
     Eternity.clean_redis
     Eternity.clean_file_system
   end
