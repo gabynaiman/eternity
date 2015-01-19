@@ -53,4 +53,20 @@ describe Session, 'Push' do
     Branch[:master].id.must_equal commit.id
   end
 
+  it 'Merge' do
+    session[:countries].insert 'AR', name: 'Argentina'
+    commit_1 = session.commit author: 'User', message: 'Commit 1'
+    session.push
+    
+    other_session = Session.new :other
+    other_session[:countries].insert 'BR', name: 'Brasil'
+    commit_2 = other_session.commit author: 'User', message: 'Commit 2'
+
+    other_session.pull
+    other_session.push
+
+    Branch[:master].id.must_equal other_session.current_commit.id
+    Branch[:master].parent_ids.must_equal [commit_2.id, commit_1.id]
+  end
+
 end

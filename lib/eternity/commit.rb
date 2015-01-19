@@ -8,7 +8,7 @@ module Eternity
     end
 
     def time
-      Time.parse data['time']
+      Time.parse(data['time']) if data['time']
     end
 
     def author
@@ -20,7 +20,7 @@ module Eternity
     end
 
     def parent_ids
-      data['parents']
+      data['parents'] || [nil]
     end
 
     def parents
@@ -28,7 +28,7 @@ module Eternity
     end
 
     def with_index
-      index = Index.read_blob data['index']
+      index = data['index'] ? Index.read_blob(data['index']) : Index.new
       yield index
     ensure
       index.destroy
@@ -39,24 +39,28 @@ module Eternity
     end
 
     def base
-      Commit.new data['base'] if data['base']
+      Commit.new data['base']
     end
 
     def base_delta
-      Blob.read :delta, data['base_delta']
+      data['base_delta'] ? Blob.read(:delta, data['base_delta']) : {}
     end
 
     def fast_forward?(commit)
-      return true unless commit
-      return commit.nil? if base.nil?
-      base.id == commit.id || base.fast_forward?(commit)
+      return commit.id.nil? if first?
+      parent_ids.any? { |id| id == commit.id } || parents.map { |c| c.fast_forward?(commit) }.inject(:|)
     end
 
     def base_history_at(commit)
+      return [] unless commit
       history = [base]
       history += base.base_history_at commit unless base.id == commit.id
       raise "History not include commit #{commit.id}" unless history.map(&:id).include? commit.id
       history
+    end
+
+    def first?
+      parent_ids.compact.empty?
     end
 
     def self.create(options)
@@ -95,7 +99,7 @@ module Eternity
     private
 
     def data
-      @data ||= Blob.read :commit, id
+      @data ||= id ? Blob.read(:commit, id) : {}
     end
 
   end

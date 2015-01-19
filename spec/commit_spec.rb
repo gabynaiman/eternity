@@ -27,7 +27,7 @@ describe Session, 'Commit' do
       current_commit.time.must_be_instance_of Time
       current_commit.author.must_equal 'User'
       current_commit.message.must_equal 'Commit message'
-      current_commit.parents.must_equal []
+      current_commit.parent_ids.must_equal [nil]
       current_commit.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
       current_commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina')}
     end

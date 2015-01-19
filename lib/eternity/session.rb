@@ -34,7 +34,7 @@ module Eternity
     end
 
     def current_commit
-      Commit.new current[:commit] if current_commit?
+      Commit.new current[:commit]
     end
 
     def current_branch
@@ -73,7 +73,7 @@ module Eternity
     end
 
     def push
-      raise 'Push rejected (non fast forward)' if current_commit? && !current_commit.fast_forward?(Branch[current_branch])
+      raise 'Push rejected (non fast forward)' unless current_commit.fast_forward?(Branch[current_branch])
       push!
     end
 
@@ -88,7 +88,7 @@ module Eternity
 
       target_commit = Branch[current_branch]
 
-      if !current_commit? || target_commit.fast_forward?(current_commit)
+      if target_commit.fast_forward?(current_commit)
         branches[current_branch] = target_commit.id
         current[:commit] = target_commit.id
       else
@@ -110,7 +110,7 @@ module Eternity
 
     def commit!(options)
       changes = delta
-      options[:parents] ||= current_commit? ? [current_commit.id] : []
+      options[:parents] ||= [current_commit.id]
       options[:delta]   ||= write_delta changes
       options[:index]   ||= write_index changes
 
@@ -122,23 +122,8 @@ module Eternity
       end
     end
 
-    def with_index(&block)
-      if current_commit?
-        current_commit.with_index(&block)
-      else
-        with_new_index(&block)
-      end
-    end
-
-    def with_new_index
-      index = Index.new
-      yield index
-    ensure
-      index.destroy
-    end
-
     def write_index(delta)
-      with_index do |index|
+      current_commit.with_index do |index|
         index.apply delta
         index.write_blob
       end

@@ -17,13 +17,15 @@ describe Session, 'Pull' do
   end
 
   it 'Without previous commit' do
-    commit_id = '123456789'
-    Branch[:master] = commit_id
+    other_session = Session.new :other
+    other_session[:countries].insert 'AR', name: 'Argentina'
+    commit = other_session.commit author: 'User', message: 'Commit 1'
+    other_session.push
 
     session.pull
 
-    session.current_commit.id.must_equal commit_id
-    session.branches[session.current_branch].must_equal commit_id
+    session.current_commit.id.must_equal commit.id
+    session.branches[session.current_branch].must_equal commit.id
   end
 
   it 'Up to date' do

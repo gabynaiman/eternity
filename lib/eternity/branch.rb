@@ -3,7 +3,7 @@ module Eternity
     class << self
 
       def [](name)
-        Commit.new branches[name] if exists? name
+        Commit.new branches[name]
       end
 
       def []=(name, commit_id)
