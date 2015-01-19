@@ -26,6 +26,30 @@ describe Session, 'Pull' do
     session.branches[session.current_branch].must_equal commit_id
   end
 
+  it 'Up to date' do
+    session[:countries].insert 'AR', name: 'Argentina'
+    commit_1 = session.commit author: 'User', message: 'Commit 1'
+    session.push
+    
+    session.pull
+
+    session.current_commit.id.must_equal commit_1.id
+  end
+
+  it 'Ahead of branch' do
+    session[:countries].insert 'AR', name: 'Argentina'
+    commit_1 = session.commit author: 'User', message: 'Commit 1'
+
+    session.push
+
+    session[:countries].insert 'UY', name: 'Uruguay'
+    commit_2 = session.commit author: 'User', message: 'Commit 2'
+
+    session.pull
+
+    session.current_commit.id.must_equal commit_2.id
+  end
+
   it 'Fast-forward' do
     session[:countries].insert 'AR', name: 'Argentina'
     commit_1 = session.commit author: 'User', message: 'Commit 1'
