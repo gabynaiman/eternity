@@ -55,6 +55,13 @@ describe Index do
     error.message.must_equal 'Countries INVALID not found'
   end
 
+  it 'Ids' do
+    index[:countries].insert 'AR', name: 'Argentina'
+    index[:countries].insert 'UY', name: 'Uruguay'
+
+    index[:countries].ids.must_equal %w(AR UY)
+  end
+
   it 'Write/Read blob' do
     index[:countries].insert 'AR', name: 'Argentina'
     index[:countries].insert 'UY', name: 'Uruguay'

@@ -48,4 +48,20 @@ describe Blob do
     error.message.must_equal 'Blob not found: xyz -> invalid_sha1'
   end
 
+  it 'Count' do
+    Blob.count.must_equal 0
+
+    3.times { |i| Blob.write :xyz, value: i }
+
+    Blob.count.must_equal 3
+  end
+
+  it 'Clear cache' do
+    3.times { |i| Blob.write :xyz, value: i }
+
+    Blob.clear_cache
+
+    Blob.count.must_equal 0
+  end
+
 end

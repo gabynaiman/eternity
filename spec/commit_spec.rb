@@ -6,6 +6,7 @@ describe Session, 'Commit' do
 
   it 'Initial status' do
     session.wont_be :changes?
+    session.changes_count.must_equal 0
     session.wont_be :current_commit?
     session.current_branch.must_equal 'master'
     session.branches.must_be_empty
@@ -15,11 +16,13 @@ describe Session, 'Commit' do
     session[:countries].insert 'AR', name: 'Argentina'
 
     session.must_be :changes?
+    session.changes_count.must_equal 1
     session.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
 
     commit = session.commit author: 'User', message: 'Commit message'
 
     session.wont_be :changes?
+    session.changes_count.must_equal 0
     session.delta.must_be_empty
 
     session.current_commit.tap do |current_commit|
