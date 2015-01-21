@@ -3,7 +3,7 @@ module Eternity
 
     def initialize
       super redis: Eternity.redis,
-            key: Eternity.keyspace[:index][Restruct.generate_key]
+            id: Eternity.keyspace[:index][SecureRandom.uuid]
     end
 
     def apply(delta)

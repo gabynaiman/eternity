@@ -9,7 +9,7 @@ module Eternity
     end
 
     def collection_name
-      index.key.sections.last
+      index.id.sections.last
     end
 
     def [](id)

@@ -14,10 +14,9 @@ Turn.config do |c|
 end
 
 Eternity.configure do |config|
-  config.keyspace = Restruct::Key.new :eternity_test
+  config.keyspace = Restruct::Id.new :eternity_test
   config.data_path = File.expand_path('../../tmp', __FILE__)
   config.blob_cache_expiration = 30
-  config.logger.formatter = ->(_,_,_,m) { "#{m}\n" }
 end
 
 class Minitest::Spec
@@ -34,8 +33,8 @@ class Minitest::Spec
   end
 
   after do
-    Eternity.clean_redis
-    Eternity.clean_file_system
+    Eternity.clear_redis
+    Eternity.clear_file_system
   end
 end
 

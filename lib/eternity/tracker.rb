@@ -11,7 +11,7 @@ module Eternity
     def initialize(session)
       @session = session
       @changes = Changes.new redis: Eternity.redis, 
-                             key: session.key[:changes]
+                             id: session.id[:changes]
     end
 
     def revert

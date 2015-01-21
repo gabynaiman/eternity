@@ -1,16 +1,14 @@
 module Eternity
   class Session
 
-    attr_reader :name, :key, :branches
+    attr_reader :name, :id, :branches
     
     def initialize(name)
       @name = name.to_s
-      @key = Eternity.keyspace[:session][@name]
+      @id = Eternity.keyspace[:session][@name]
       @tracker = Tracker.new self
-      @current = Restruct::Hash.new redis: Eternity.redis,
-                                    key: key[:current]
-      @branches = Restruct::Hash.new redis: Eternity.redis,
-                                     key: key[:branches]
+      @current = Restruct::Hash.new redis: Eternity.redis, id: id[:current]
+      @branches = Restruct::Hash.new redis: Eternity.redis, id: id[:branches]
     end
 
     def [](collection)

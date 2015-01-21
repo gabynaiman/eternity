@@ -61,5 +61,35 @@ describe Session, 'Commit' do
     error = proc { session.commit author: 'User', message: 'Commit message' }.must_raise RuntimeError
     error.message.must_equal 'Nothing to commit'
   end
+
+  describe 'With index' do
+
+    def assert_transeint_index
+      redis.call('KEYS', Eternity.keyspace[:index]['*']).must_be_empty
+    end
+
+    it 'Transient' do
+      session[:countries].insert 'AR', name: 'Argentina'
+      commit = session.commit author: 'User', message: 'Commit 1'
+
+      commit.with_index { |i| i[:countries].ids }.must_equal %w(AR)
+
+      assert_transeint_index
+    end
+
+    it 'Invalid commit' do
+      commit = Commit.new 'invalid'
+      proc { commit.with_index { fail 'Invalid commit' } }.must_raise RuntimeError
+      assert_transeint_index      
+    end
+
+    it 'Invalid block' do
+      commit = Commit.new nil
+      error = proc { commit.with_index { raise 'Test error' } }.must_raise RuntimeError
+      error.message.must_equal 'Test error'
+      assert_transeint_index
+    end
+
+  end
   
 end

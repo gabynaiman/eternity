@@ -18,7 +18,7 @@ module Eternity
 
       def branches
         @branches ||= Restruct::Hash.new redis: Eternity.redis,
-                                         key: Eternity.keyspace[:branches]
+                                         id: Eternity.keyspace[:branches]
       end
 
     end

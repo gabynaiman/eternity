@@ -69,7 +69,7 @@ describe Index do
     sha1 = index.write_blob
     index_2 = Index.read_blob sha1
 
-    index.key.wont_equal index_2.key
+    index.id.wont_equal index_2.id
     index.to_h.must_equal index_2.to_h
   end
 

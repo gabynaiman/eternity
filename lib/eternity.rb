@@ -5,8 +5,7 @@ require 'class_config'
 require 'logger'
 require 'fileutils'
 require 'forwardable'
-
-require_relative 'restruct'
+require 'restruct'
 
 module Eternity
 
@@ -19,7 +18,7 @@ module Eternity
   extend ClassConfig
 
   attr_config :redis, Redic.new
-  attr_config :keyspace, Restruct::Key.new(:eternity)
+  attr_config :keyspace, Restruct::Id.new(:eternity)
   attr_config :blob_cache_expiration, 24 * 60 * 60 # 1 day in seconds
   attr_config :data_path, File.join(Dir.home, '.eternity')
   attr_config :logger, Logger.new(STDOUT)
@@ -28,20 +27,19 @@ module Eternity
     redis.call 'KEYS', keyspace['*']
   end
 
-  def self.clean_redis
+  def self.clear_redis
     redis_keys.each do |key|
       redis.call 'DEL', key
     end
   end
 
-  def self.clean_file_system
+  def self.clear_file_system
     FileUtils.rm_rf data_path if Dir.exists? data_path
   end
 
 end
 
 require_relative 'eternity/version'
-
 require_relative 'eternity/blob'
 require_relative 'eternity/session'
 require_relative 'eternity/object_tracker'

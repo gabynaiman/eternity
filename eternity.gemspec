@@ -19,6 +19,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
 
   spec.add_dependency 'redic',        '~> 1.1.1'
+  spec.add_dependency 'restruct',     '~> 0.0.1'
   spec.add_dependency 'class_config', '~> 0.0.1'
 
   if RUBY_PLATFORM == 'java'
