@@ -1,6 +1,9 @@
 module Eternity
   class ObjectTracker
 
+    extend Forwardable
+    def_delegators :changes, :to_a, :to_primitive, :count, :each
+
     def initialize(options)
       @changes = Restruct::MarshalArray.new options
     end
@@ -24,11 +27,6 @@ module Eternity
     def flatten
       TrackFlatter.flatten changes
     end
-
-    def to_a
-      changes.to_a
-    end
-    alias_method :to_primitive, :to_a
 
     private
 

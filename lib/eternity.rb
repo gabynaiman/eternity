@@ -6,6 +6,7 @@ require 'logger'
 require 'fileutils'
 require 'forwardable'
 require 'restruct'
+require 'active_record'
 
 module Eternity
 
@@ -52,3 +53,4 @@ require_relative 'eternity/branch'
 require_relative 'eternity/patch'
 require_relative 'eternity/track_flatter'
 require_relative 'eternity/conflict_resolver'
+require_relative 'eternity/model'

@@ -102,6 +102,17 @@ module Eternity
       end
     end
 
+    def self.with(name)
+      @current = Session.new name
+      yield
+    ensure
+      @current = nil
+    end
+
+    def self.current
+      @current
+    end
+
     private
 
     attr_reader :tracker, :current

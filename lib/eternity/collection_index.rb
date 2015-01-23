@@ -2,7 +2,7 @@ module Eternity
   class CollectionIndex
 
     extend Forwardable
-    def_delegators :index, :to_h, :to_primitive, :empty?, :dump, :restore, :destroy
+    def_delegators :index, :to_h, :to_primitive, :empty?, :dump, :restore, :destroy, :count
 
     def initialize(options)
       @index = Restruct::Hash.new options
