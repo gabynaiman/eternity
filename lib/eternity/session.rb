@@ -104,7 +104,7 @@ module Eternity
 
     def self.with(name)
       @current = Session.new name
-      yield
+      yield @current
     ensure
       @current = nil
     end
