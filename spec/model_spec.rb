@@ -2,14 +2,14 @@ require 'minitest_helper'
 
 describe Model do
 
-  let(:session) { Session.new :test }
+  let(:repository) { Repository.new :test }
 
   it 'Insert' do
-    Session.with :test do
+    Repository.with :test do
       language = Language.create! name: 'Spanish'
 
-      session.changes_count.must_equal 1
-      session[:languages].to_h.must_equal language.id.to_s => [
+      repository.changes_count.must_equal 1
+      repository[:languages].to_h.must_equal language.id.to_s => [
         {
           'action' => 'insert', 
           'blob' => digest(language.attributes)
@@ -19,15 +19,15 @@ describe Model do
   end
 
   it 'Insert -> Update' do
-    Session.with :test do
+    Repository.with :test do
       language = Language.create! name: 'Spanish'
       attrs_1 = language.attributes
       
       language.update_attributes name: 'English'
       attrs_2 = language.attributes
 
-      session.changes_count.must_equal 1
-      session[:languages].to_h.must_equal language.id.to_s => [
+      repository.changes_count.must_equal 1
+      repository[:languages].to_h.must_equal language.id.to_s => [
         {
           'action' => 'insert', 
           'blob' => digest(attrs_1)
@@ -41,14 +41,14 @@ describe Model do
   end
 
   it 'Insert -> Delete' do
-    Session.with :test do
+    Repository.with :test do
       language = Language.create! name: 'Spanish'
       attrs_1 = language.attributes
       
       language.destroy
 
-      session.changes_count.must_equal 1
-      session[:languages].to_h.must_equal language.id.to_s => [
+      repository.changes_count.must_equal 1
+      repository[:languages].to_h.must_equal language.id.to_s => [
         {
           'action' => 'insert', 
           'blob' => digest(attrs_1)
@@ -60,9 +60,9 @@ describe Model do
     end
   end
 
-  it 'Without current session' do
+  it 'Without current repository' do
     error = proc { Language.create! name: 'Spanish' }.must_raise RuntimeError
-    error.message.must_equal 'Undefined current session'
+    error.message.must_equal 'Undefined current repository'
   end
 
 end

@@ -2,14 +2,14 @@ require 'minitest_helper'
 
 describe Tracker do
 
-  let(:tracker) { Tracker.new Session.new(:test) }
+  let(:tracker) { Tracker.new Repository.new(:test) }
   
   it 'Initial status' do
     tracker.must_be_empty
     tracker.flatten.must_be_empty
   end
 
-  it 'Insert' do
+  it 'Inseprt' do
     tracker[:countries].insert 'AR', name: 'Argentina'
 
     tracker.to_h.must_equal 'countries' => {'AR' => [{'action' => 'insert', 'blob' => digest(name: 'Argentina')}]}

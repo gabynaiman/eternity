@@ -3,25 +3,25 @@ module Eternity
 
     def self.included(base)
       base.after_create do |model|
-        check_current_session!
-        Session.current[model.class.table_name].insert model.id, model.attributes
+        check_current_repository!
+        Repository.current[model.class.table_name].insert model.id, model.attributes
       end
 
       base.after_update do |model|
-        check_current_session!
-        Session.current[model.class.table_name].update model.id, model.attributes
+        check_current_repository!
+        Repository.current[model.class.table_name].update model.id, model.attributes
       end
 
       base.after_destroy do |model|
-        check_current_session!
-        Session.current[model.class.table_name].delete model.id
+        check_current_repository!
+        Repository.current[model.class.table_name].delete model.id
       end
     end
 
     private
 
-    def check_current_session!
-      raise 'Undefined current session' unless Session.current
+    def check_current_repository!
+      raise 'Undefined current repository' unless Repository.current
     end
 
   end

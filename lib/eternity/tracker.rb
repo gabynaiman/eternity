@@ -6,12 +6,12 @@ module Eternity
     extend Forwardable
     def_delegators :changes, :[], :to_h, :empty?, :count
 
-    attr_reader :session
+    attr_reader :repository
 
-    def initialize(session)
-      @session = session
+    def initialize(repository)
+      @repository = repository
       @changes = Changes.new redis: Eternity.redis, 
-                             id: session.id[:changes]
+                             id: repository.id[:changes]
     end
 
     def revert

@@ -1,31 +1,31 @@
 require 'minitest_helper'
 
-describe Session, 'Commit' do
+describe Repository, 'Commit' do
   
-  let(:session) { Session.new :test }
+  let(:repository) { Repository.new :test }
 
   it 'Initial status' do
-    session.wont_be :changes?
-    session.changes_count.must_equal 0
-    session.wont_be :current_commit?
-    session.current_branch.must_equal 'master'
-    session.branches.must_be_empty
+    repository.wont_be :changes?
+    repository.changes_count.must_equal 0
+    repository.wont_be :current_commit?
+    repository.current_branch.must_equal 'master'
+    repository.branches.must_be_empty
   end
 
   it 'First' do
-    session[:countries].insert 'AR', name: 'Argentina'
+    repository[:countries].insert 'AR', name: 'Argentina'
 
-    session.must_be :changes?
-    session.changes_count.must_equal 1
-    session.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    repository.must_be :changes?
+    repository.changes_count.must_equal 1
+    repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
 
-    commit = session.commit author: 'User', message: 'Commit message'
+    commit = repository.commit author: 'User', message: 'Commit message'
 
-    session.wont_be :changes?
-    session.changes_count.must_equal 0
-    session.delta.must_be_empty
+    repository.wont_be :changes?
+    repository.changes_count.must_equal 0
+    repository.delta.must_be_empty
 
-    session.current_commit.tap do |current_commit|
+    repository.current_commit.tap do |current_commit|
       current_commit.id.must_equal commit.id
       current_commit.time.must_be_instance_of Time
       current_commit.author.must_equal 'User'
@@ -37,13 +37,13 @@ describe Session, 'Commit' do
   end
 
   it 'Sequence' do
-    session[:countries].insert 'AR', name: 'Argentina'
-    commit_1 = session.commit author: 'User', message: 'Commit 1'
+    repository[:countries].insert 'AR', name: 'Argentina'
+    commit_1 = repository.commit author: 'User', message: 'Commit 1'
 
-    session[:countries].insert 'UY', name: 'Uruguay'
-    commit_2 = session.commit author: 'User', message: 'Commit 2'
+    repository[:countries].insert 'UY', name: 'Uruguay'
+    commit_2 = repository.commit author: 'User', message: 'Commit 2'
 
-    session.current_commit.tap do |current_commit|
+    repository.current_commit.tap do |current_commit|
       current_commit.id.must_equal commit_2.id
       current_commit.time.must_be_instance_of Time
       current_commit.author.must_equal 'User'
@@ -58,7 +58,7 @@ describe Session, 'Commit' do
   end
 
   it 'No changes' do
-    error = proc { session.commit author: 'User', message: 'Commit message' }.must_raise RuntimeError
+    error = proc { repository.commit author: 'User', message: 'Commit message' }.must_raise RuntimeError
     error.message.must_equal 'Nothing to commit'
   end
 
@@ -69,8 +69,8 @@ describe Session, 'Commit' do
     end
 
     it 'Transient' do
-      session[:countries].insert 'AR', name: 'Argentina'
-      commit = session.commit author: 'User', message: 'Commit 1'
+      repository[:countries].insert 'AR', name: 'Argentina'
+      commit = repository.commit author: 'User', message: 'Commit 1'
 
       commit.with_index { |i| i[:countries].ids }.must_equal %w(AR)
 

@@ -1,11 +1,11 @@
 module Eternity
-  class Session
+  class Repository
 
     attr_reader :name, :id, :branches
     
     def initialize(name)
       @name = name.to_s
-      @id = Eternity.keyspace[:session][@name]
+      @id = Eternity.keyspace[:repository][@name]
       @tracker = Tracker.new self
       @current = Restruct::Hash.new redis: Eternity.redis, id: id[:current]
       @branches = Restruct::Hash.new redis: Eternity.redis, id: id[:branches]
@@ -103,7 +103,7 @@ module Eternity
     end
 
     def self.with(name)
-      @current = Session.new name
+      @current = Repository.new name
       yield @current
     ensure
       @current = nil
