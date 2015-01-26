@@ -29,16 +29,9 @@ module Eternity
 
     def with_index
       index = data['index'] ? Index.read_blob(data['index']) : Index.new
-      error = nil
-      result = nil
-      begin
-        result = yield index
-      rescue => ex
-        error = ex
-      end
-      index.destroy
-      raise error if error
-      result
+      yield index
+    ensure
+      index.destroy if index
     end
 
     def delta
