@@ -6,7 +6,7 @@ describe Blob do
   let(:serialization) { MessagePack.pack data }
   let(:sha1) { Digest::SHA1.hexdigest serialization }
   let(:key) { Eternity.keyspace[:blob][:xyz][sha1] }
-  let(:filename) { File.join(Eternity.data_path, 'blob', 'xyz', sha1[0..1], sha1[2..-1]) }
+  let(:filename) { File.join(Eternity.blob_path, 'xyz', sha1[0..1], sha1[2..-1]) }
 
   def wait_and_read_file(filename)
     Timeout.timeout(5) do

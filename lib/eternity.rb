@@ -22,7 +22,7 @@ module Eternity
   attr_config :redis, Redic.new
   attr_config :keyspace, Restruct::Id.new(:eternity)
   attr_config :blob_cache_expiration, 24 * 60 * 60 # 1 day in seconds
-  attr_config :data_path, File.join(Dir.home, '.eternity')
+  attr_config :blob_path, File.join(Dir.home, '.eternity')
   attr_config :logger, Logger.new(STDOUT)
 
   def self.redis_keys
@@ -36,7 +36,7 @@ module Eternity
   end
 
   def self.clear_file_system
-    FileUtils.rm_rf data_path if Dir.exists? data_path
+    FileUtils.rm_rf blob_path if Dir.exists? blob_path
   end
 
 end

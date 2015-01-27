@@ -86,7 +86,7 @@ module Eternity
       end
 
       def file_for(type, sha1)
-        File.join Eternity.data_path, 'blob', type.to_s, sha1[0..1], sha1[2..-1]
+        File.join Eternity.blob_path, type.to_s, sha1[0..1], sha1[2..-1]
       end
 
     end
