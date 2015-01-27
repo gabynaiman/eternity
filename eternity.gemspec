@@ -36,10 +36,11 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'pry-nav'
   spec.add_development_dependency 'database_cleaner', '~> 1.4'
+  spec.add_development_dependency 'activerecord_uuid'
 
   if RUBY_PLATFORM == 'java'
-    spec.add_development_dependency 'activerecord-jdbcsqlite3-adapter'
+    spec.add_development_dependency 'activerecord-jdbcpostgresql-adapter'
   else
-    spec.add_development_dependency 'sqlite3'
+    spec.add_development_dependency 'pg'
   end
 end

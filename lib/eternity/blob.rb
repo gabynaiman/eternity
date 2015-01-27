@@ -33,8 +33,9 @@ module Eternity
       end
 
       def sanitize(data)
-        data.each { |k,v| data[k] = v.strftime TIME_FORMAT if v.is_a? Time }
-        data
+        data.dup.tap do |d|
+          d.each { |k,v| d[k] = v.strftime TIME_FORMAT if v.is_a? Time }
+        end
       end
 
       def serialize(data)

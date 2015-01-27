@@ -5,6 +5,7 @@ require 'timeout'
 require 'turn'
 require 'pry-nav'
 require 'database_cleaner'
+require 'activerecord_uuid'
 
 include Eternity
 
@@ -22,7 +23,7 @@ Eternity.configure do |config|
 end
 
 ActiveRecord::Base.logger = Eternity.logger
-ActiveRecord::Base.establish_connection adapter: 'sqlite3', database: ':memory:'
+ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'eternity', username: 'postgres'
 ActiveRecord::Migration.verbose = false
 ActiveRecord::Migrator.migrate File.expand_path('../migrations', __FILE__)
 

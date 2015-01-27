@@ -87,30 +87,24 @@ module Eternity
       target_commit = Branch[current_branch]
 
       if target_commit.fast_forward?(current_commit)
+        patch = Patch.new current_commit, target_commit
         branches[current_branch] = target_commit.id
         current[:commit] = target_commit.id
+        patch
+      
+      elsif current_commit.id != target_commit.id && !current_commit.fast_forward?(target_commit)
+        patch = Patch.new current_commit, target_commit
+        commit! author: 'System',
+                message: "Merge #{target_commit.id} into #{current_commit.id}",
+                parents: patch.commit_ids,
+                index: write_index(patch.index_delta),
+                base: patch.base_commit.id,
+                base_delta: Blob.write(:delta, patch.base_delta)
+        patch
+      
       else
-        if current_commit.id != target_commit.id && !current_commit.fast_forward?(target_commit)
-          patch = Patch.new current_commit, target_commit
-          commit! author: 'System',
-                  message: "Merge #{target_commit.id} into #{current_commit.id}",
-                  parents: patch.commit_ids,
-                  index: write_index(patch.index_delta),
-                  base: patch.base_commit.id,
-                  base_delta: Blob.write(:delta, patch.base_delta)
-        end
+        nil
       end
-    end
-
-    def self.with(name)
-      @current = Repository.new name
-      yield @current
-    ensure
-      @current = nil
-    end
-
-    def self.current
-      @current
     end
 
     private

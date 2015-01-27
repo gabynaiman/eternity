@@ -1,18 +1,31 @@
 module Eternity
   class Patch
 
-    attr_reader :current_commit, :target_commit, :base_commit, 
-                :current_delta,  :target_delta,  :base_delta,
-                :index_delta
+    attr_reader :current_commit, :target_commit
     
     def initialize(current_commit, target_commit)
       @current_commit = current_commit
       @target_commit = target_commit
-      @base_commit = Commit.base_of current_commit, target_commit
-      @current_delta = base_delta_of current_commit
-      @target_delta = base_delta_of target_commit
-      @index_delta = calculate_index_delta
-      @base_delta = merge [current_delta, index_delta]
+    end
+
+    def base_commit
+      @base_commit ||= Commit.base_of current_commit, target_commit
+    end
+
+    def current_delta
+      @current_delta ||= base_delta_of current_commit
+    end
+
+    def target_delta
+      @target_delta ||= base_delta_of target_commit
+    end
+
+    def index_delta 
+      @index_delta ||= calculate_index_delta
+    end
+
+    def base_delta 
+      @base_delta ||= merge [current_delta, index_delta]
     end
 
     def commits
@@ -65,7 +78,10 @@ module Eternity
           hash[collection] = {}
          
           elements.each do |id, change|
-            if change['action'] == INSERT && current_action_for(collection, id) == INSERT
+            if change.nil?
+              change = {'action' => DELETE}
+
+            elsif change['action'] == INSERT && current_action_for(collection, id) == INSERT
               data = ConflictResolver.resolve current_delta[collection][id]['data'], 
                                               change['data']
               change = {'action' => UPDATE, 'data' => data}

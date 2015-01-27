@@ -1,4 +1,4 @@
 class Language < ActiveRecord::Base
   include Eternity::Model
-  has_many :countries
+  pk_uuid
 end
