@@ -7,7 +7,7 @@ describe Model do
       language = Language.create! name: 'Spanish'
 
       session.changes_count.must_equal 1
-      session[:languages].to_h.must_equal language.id.to_s => [
+      session[:languages].to_h.must_equal language.id => [
         {
           'action' => 'insert', 
           'blob' => digest(language.attributes)
@@ -25,7 +25,7 @@ describe Model do
       attrs_2 = language.attributes
 
       session.changes_count.must_equal 1
-      session[:languages].to_h.must_equal language.id.to_s => [
+      session[:languages].to_h.must_equal language.id => [
         {
           'action' => 'insert', 
           'blob' => digest(attrs_1)
@@ -46,7 +46,7 @@ describe Model do
       language.destroy
 
       session.changes_count.must_equal 1
-      session[:languages].to_h.must_equal language.id.to_s => [
+      session[:languages].to_h.must_equal language.id => [
         {
           'action' => 'insert', 
           'blob' => digest(attrs_1)

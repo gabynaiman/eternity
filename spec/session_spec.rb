@@ -5,6 +5,45 @@ describe Session do
   let(:session) { Session.new :test_1 }
   let(:other_repository) { Repository.new :test_2 }
 
+  describe 'Transaction' do
+
+    it 'Commit' do
+      language_id = Session.with :test_1 do
+        Transaction.execute do
+          language = Language.create! name: 'Spanish'
+          language.id
+        end
+      end
+
+      Language.count.must_equal 1
+      language = Language.find language_id
+      language.name.must_equal 'Spanish'
+
+      session.changes_count.must_equal 1
+      session[:languages].to_h.must_equal language_id => [
+        {
+          'action' => 'insert', 
+          'blob' => digest(language.attributes)
+        }
+      ]
+    end
+
+    it 'Rollback' do
+      proc do
+        Session.with :test_1 do
+          Transaction.execute do
+            Language.create! name: 'Spanish'
+            raise 'Test error'
+          end
+        end
+      end.must_raise RuntimeError
+
+      Language.count.must_equal 0
+      session.changes_count.must_equal 0
+    end
+
+  end
+
   describe 'Pull' do
 
     it 'Synchronize -> insert' do
