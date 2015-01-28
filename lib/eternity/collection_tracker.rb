@@ -4,7 +4,7 @@ module Eternity
     Changes = Restruct::NestedHash.new ObjectTracker
 
     extend Forwardable
-    def_delegators :changes, :to_h, :to_primitive, :count, :[]
+    def_delegators :changes, :to_h, :to_primitive, :count, :[], :destroy
 
     def initialize(options={})
       @changes = Changes.new options
@@ -26,9 +26,7 @@ module Eternity
       changes[id].revert
     end
 
-    def revert_all
-      changes.keys.each { |id| revert id }
-    end
+    alias_method :revert_all, :destroy
 
     def flatten
       changes.each_with_object({}) do |(id, tracker), hash|

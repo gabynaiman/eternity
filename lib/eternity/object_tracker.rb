@@ -2,7 +2,7 @@ module Eternity
   class ObjectTracker
 
     extend Forwardable
-    def_delegators :changes, :to_a, :to_primitive, :count, :each
+    def_delegators :changes, :to_a, :to_primitive, :count, :each, :destroy
 
     def initialize(options)
       @changes = Restruct::MarshalArray.new options
@@ -20,9 +20,7 @@ module Eternity
       track DELETE
     end
 
-    def revert
-      changes.destroy
-    end
+    alias_method :revert, :destroy
 
     def flatten
       TrackFlatter.flatten changes
