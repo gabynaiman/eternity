@@ -4,7 +4,7 @@ module Eternity
     Changes = Restruct::NestedHash.new CollectionTracker
     
     extend Forwardable
-    def_delegators :changes, :[], :to_h, :empty?, :count, :destroy
+    def_delegators :changes, :[], :to_h, :empty?, :destroy
 
     attr_reader :repository
 
@@ -12,6 +12,12 @@ module Eternity
       @repository = repository
       @changes = Changes.new redis: Eternity.redis, 
                              id: repository.id[:changes]
+    end
+
+    def count
+      changes.inject(0) do |sum, (collection, tracker)|
+        sum + tracker.count
+      end
     end
 
     def revert
