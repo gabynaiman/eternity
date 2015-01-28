@@ -15,6 +15,10 @@ module Eternity
       tracker[collection]
     end
 
+    def empty?
+      tracker.empty? && current.empty? && branches.empty?
+    end
+
     def changes?
       !tracker.empty?
     end
@@ -71,8 +75,10 @@ module Eternity
     end
 
     def push
-      raise 'Push rejected (non fast forward)' unless current_commit.fast_forward?(Branch[current_branch])
-      push!
+      if current_commit.id != Branch[current_branch].id
+        raise 'Push rejected (non fast forward)' unless current_commit.fast_forward?(Branch[current_branch])
+        push!
+      end
     end
 
     def push!
@@ -111,6 +117,14 @@ module Eternity
       tracker.destroy
       current.destroy
       branches.destroy
+    end
+
+    def to_h
+      {
+        'current' => current.to_h,
+        'branches' => branches.to_h,
+        'tracker' => tracker.to_h
+      }
     end
 
     private
