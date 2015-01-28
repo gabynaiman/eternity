@@ -35,6 +35,9 @@ module Eternity
     def track(action, data=nil)
       change = {'action' => action}
       change['blob'] = Blob.write(:data, data) if data
+
+      Eternity.logger.debug(self.class) { "#{changes.id} - #{change} - #{data}" }
+      
       changes << change
     end
 
