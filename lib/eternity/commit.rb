@@ -75,6 +75,9 @@ module Eternity
         base_delta: options[:parents].count == 2 ? options.fetch(:base_delta) : options.fetch(:delta)
       }
 
+      raise 'Author must be present' if data[:author].strip.empty?
+      raise 'Message must be present' if data[:message].strip.empty?
+
       new Blob.write(:commit, data)
     end
 
