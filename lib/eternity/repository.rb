@@ -107,6 +107,12 @@ module Eternity
       end
     end
 
+    def destroy
+      tracker.destroy
+      current.destroy
+      branches.destroy
+    end
+
     private
 
     attr_reader :tracker, :current
