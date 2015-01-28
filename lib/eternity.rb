@@ -8,6 +8,7 @@ require 'forwardable'
 require 'delegate'
 require 'restruct'
 require 'active_record'
+require 'base64'
 
 module Eternity
 

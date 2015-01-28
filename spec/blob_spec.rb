@@ -8,6 +8,14 @@ describe Blob do
   let(:key) { Eternity.keyspace[:blob][:xyz][sha1] }
   let(:filename) { File.join(Eternity.blob_path, 'xyz', sha1[0..1], sha1[2..-1]) }
 
+  def encode(text)
+    Base64.encode64 text
+  end
+
+  def decode(text)
+    Base64.decode64 text
+  end
+
   def wait_and_read_file(filename)
     Timeout.timeout(5) do
       until File.exists?(filename) && File.size(filename) > 0
@@ -25,7 +33,7 @@ describe Blob do
     redis_data = redis.call 'GET', key
     file_data = wait_and_read_file filename
 
-    [redis_data, file_data].each { |d| MessagePack.unpack(d).must_equal data }
+    [redis_data, decode(file_data)].each { |d| MessagePack.unpack(d).must_equal data }
   end
 
   it 'Read from redis' do
@@ -37,7 +45,7 @@ describe Blob do
 
   it 'Read from file' do
     FileUtils.mkpath File.dirname(filename)
-    File.write filename, serialization
+    File.write filename, encode(serialization)
 
     redis.call('GET', key).must_be_nil
     Blob.read(:xyz, sha1).must_equal data

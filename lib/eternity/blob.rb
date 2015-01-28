@@ -34,7 +34,7 @@ module Eternity
 
       def sanitize(data)
         data.dup.tap do |d|
-          d.each { |k,v| d[k] = v.strftime TIME_FORMAT if v.is_a? Time }
+          d.each { |k,v| d[k] = v.strftime TIME_FORMAT if v.respond_to? :strftime }
         end
       end
 
@@ -72,12 +72,12 @@ module Eternity
         if !File.exists? filename
           dirname = File.dirname filename
           FileUtils.mkpath dirname unless Dir.exists? dirname
-          File.write filename, serialization
+          File.write filename, Base64.encode64(serialization)
         end
       end
 
       def read_file(type, sha1)
-        serialization = IO.read file_for(type, sha1)
+        serialization = Base64.decode64(IO.read(file_for(type, sha1)))
         write_redis type, sha1, serialization
         serialization
 
