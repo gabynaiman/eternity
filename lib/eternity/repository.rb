@@ -111,6 +111,10 @@ module Eternity
       end
     end
 
+    def revert
+      reverted_delta.tap { tracker.revert }
+    end
+
     def destroy
       tracker.destroy
       current.destroy
@@ -135,11 +139,10 @@ module Eternity
       options[:delta]   ||= write_delta changes
       options[:index]   ||= write_index changes
 
-      tracker.clear
-        
       Commit.create(options).tap do |commit|
         current[:commit] = commit.id
         branches[current_branch] = commit.id
+        tracker.clear
       end
     end
 
@@ -152,6 +155,26 @@ module Eternity
 
     def write_delta(delta)
       Blob.write :delta, delta
+    end
+
+    def reverted_delta
+      current_commit.with_index do |index|
+        delta.each_with_object({}) do |(collection, changes), hash|
+          hash[collection] = {}
+          changes.each do |id, change|
+            hash[collection][id] = 
+              if change['action'] == INSERT
+                {'action' => DELETE}
+              elsif change['action'] == UPDATE
+                {'action' => UPDATE, 'data' => index[collection][id].data}
+              elsif change['action'] == DELETE
+                {'action' => INSERT, 'data' => index[collection][id].data}
+              else
+                raise "Invalid change for #{collection} #{id} (#{change})"
+              end
+          end
+        end
+      end
     end
 
   end
