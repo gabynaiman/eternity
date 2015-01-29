@@ -21,7 +21,6 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'redic', '~> 1.2.0'
   spec.add_dependency 'restruct', '~> 0.0.3'
   spec.add_dependency 'class_config', '~> 0.0.1'
-  spec.add_dependency 'activerecord', '~> 3.2'
 
   if RUBY_PLATFORM == 'java'
     spec.add_dependency 'msgpack-jruby'
@@ -35,12 +34,4 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'turn', '~> 0.9'
   spec.add_development_dependency 'simplecov'
   spec.add_development_dependency 'pry-nav'
-  spec.add_development_dependency 'database_cleaner', '~> 1.4'
-  spec.add_development_dependency 'activerecord_uuid'
-
-  if RUBY_PLATFORM == 'java'
-    spec.add_development_dependency 'activerecord-jdbcpostgresql-adapter'
-  else
-    spec.add_development_dependency 'pg'
-  end
 end

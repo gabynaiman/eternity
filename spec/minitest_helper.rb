@@ -4,8 +4,6 @@ require 'minitest/autorun'
 require 'timeout'
 require 'turn'
 require 'pry-nav'
-require 'database_cleaner'
-require 'activerecord_uuid'
 
 include Eternity
 
@@ -22,13 +20,6 @@ Eternity.configure do |config|
   config.logger.level = Logger::ERROR
 end
 
-ActiveRecord::Base.logger = Eternity.logger
-ActiveRecord::Base.establish_connection adapter: 'postgresql', database: 'eternity', username: 'postgres'
-ActiveRecord::Migration.verbose = false
-ActiveRecord::Migrator.migrate File.expand_path('../migrations', __FILE__)
-
-Dir.glob(File.expand_path('../models/*.rb', __FILE__)).each { |f| require f }
-
 class Minitest::Spec
   def redis
     Eternity.redis
@@ -42,12 +33,7 @@ class Minitest::Spec
     Blob.digest(Blob.serialize(data))
   end
 
-  before do
-    DatabaseCleaner.start
-  end
-
   after do
-    DatabaseCleaner.clean
     Eternity.clear_redis
     Eternity.clear_file_system
   end
