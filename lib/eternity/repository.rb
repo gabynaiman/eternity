@@ -75,10 +75,8 @@ module Eternity
     end
 
     def push
-      if current_commit.id != Branch[current_branch].id
-        raise 'Push rejected (non fast forward)' unless current_commit.fast_forward?(Branch[current_branch])
-        push!
-      end
+      raise 'Push rejected (non fast forward)' if current_commit.id != Branch[current_branch].id && !current_commit.fast_forward?(Branch[current_branch])
+      push!
     end
 
     def push!
