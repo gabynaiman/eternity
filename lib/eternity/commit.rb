@@ -99,6 +99,13 @@ module Eternity
       Commit.new (history_1 & history_2).first
     end
 
+    def self.exists?(id)
+      Blob.read :commit, id
+      true
+    rescue
+      false
+    end
+
     private
 
     def data

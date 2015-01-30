@@ -57,10 +57,12 @@ module Eternity
       branches[name] = current_commit.id
     end
 
-    def checkout(branch)
+    def checkout(options)
       raise "Can't checkout with uncommitted changes" if changes?
 
-      commit_id =
+      branch = options.fetch(:branch) { current_branch }
+      
+      commit_id = options.fetch(:commit) do
         if branches.key? branch
           branches[branch]
         elsif Branch.exists?(branch)
@@ -68,10 +70,17 @@ module Eternity
         else
           raise "Invalid branch #{branch}"
         end
+      end
+
+      raise "Invalid commit #{commit_id}" unless Commit.exists? commit_id
+
+      original_commit = current_commit
 
       current[:commit] = commit_id
       current[:branch] = branch
       branches[branch] = commit_id
+
+      Patch.new original_commit, current_commit
     end
 
     def push
