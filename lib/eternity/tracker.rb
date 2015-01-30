@@ -20,10 +20,8 @@ module Eternity
       end
     end
 
-    def revert
-      changes.each { |_,t| t.revert_all }
-    end
-    alias_method :clear, :revert
+    alias_method :revert, :destroy
+    alias_method :clear, :destroy
 
     def flatten
       changes.each_with_object({}) do |(collection, tracker), hash|
