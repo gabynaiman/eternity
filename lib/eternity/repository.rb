@@ -31,6 +31,16 @@ module Eternity
       tracker.flatten
     end
 
+    def delta=(delta)
+      tracker.clear
+      delta.each do |collection, changes|
+        changes.each do |id, change|
+          args = [id, change['data']].compact
+          self[collection].send(change['action'], *args)
+        end
+      end
+    end
+
     def current_commit?
       current.key? :commit
     end
@@ -72,15 +82,20 @@ module Eternity
         end
       end
 
-      raise "Invalid commit #{commit_id}" unless Commit.exists? commit_id
-
       original_commit = current_commit
 
-      current[:commit] = commit_id
-      current[:branch] = branch
-      branches[branch] = commit_id
+      if commit_id
+        raise "Invalid commit #{commit_id}" unless Commit.exists? commit_id
+        current[:commit] = commit_id
+        branches[branch] = commit_id
+      else
+        current.delete :commit
+        branches.delete branch
+      end
 
-      Patch.new original_commit, current_commit
+      current[:branch] = branch
+
+      Patch.new original_commit, current_commit unless original_commit.id == current_commit.id
     end
 
     def push
