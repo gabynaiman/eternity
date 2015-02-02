@@ -14,6 +14,10 @@ module Eternity
         branches.key? name
       end
 
+      def delete(name)
+        branches.delete name
+      end
+
       private
 
       def branches
