@@ -1,6 +1,6 @@
 require 'minitest_helper'
 
-describe Repository, 'Commit' do
+describe Repository, 'Log' do
   
   let(:repository) { Repository.new :test }
 
