@@ -4,14 +4,6 @@ describe Repository, 'Commit' do
   
   let(:repository) { Repository.new :test }
 
-  it 'Initial status' do
-    repository.wont_be :changes?
-    repository.changes_count.must_equal 0
-    repository.wont_be :current_commit?
-    repository.current_branch.must_equal 'master'
-    repository.branches.must_be_empty
-  end
-
   it 'First' do
     repository[:countries].insert 'AR', name: 'Argentina'
 

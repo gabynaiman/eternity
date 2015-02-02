@@ -7,6 +7,10 @@ module Eternity
       @id = id
     end
 
+    def short_id
+      id ? id[0,7] : nil
+    end
+
     def time
       Time.parse(data['time']) if data['time']
     end
@@ -46,6 +50,16 @@ module Eternity
       data['base_delta'] ? Blob.read(:delta, data['base_delta']) : {}
     end
 
+    def history_times
+      data['history_times'] ? Blob.read(:history_times, data['history_times']) : {}
+    end
+
+    def history
+      history_times.sort_by { |id, time| time }
+                   .map { |id, time| Commit.new id }
+                   .reverse
+    end
+
     def fast_forward?(commit)
       return commit.id.nil? if first?
       parent_ids.any? { |id| id == commit.id } || parents.map { |c| c.fast_forward?(commit) }.inject(:|)
@@ -64,19 +78,26 @@ module Eternity
     end
 
     def self.create(options)
-      data = {
-        time:       Time.now,
-        author:     options.fetch(:author),
-        message:    options.fetch(:message),
-        parents:    options.fetch(:parents),
-        index:      options.fetch(:index),
-        delta:      options.fetch(:delta),
-        base:       options[:parents].count == 2 ? options.fetch(:base) : options[:parents].first,
-        base_delta: options[:parents].count == 2 ? options.fetch(:base_delta) : options.fetch(:delta)
-      }
+      raise 'Author must be present' if options[:author].to_s.strip.empty?
+      raise 'Message must be present' if options[:message].to_s.strip.empty?
 
-      raise 'Author must be present' if data[:author].strip.empty?
-      raise 'Message must be present' if data[:message].strip.empty?
+      history_times = options[:parents].compact.each_with_object({}) do |id, hash|
+        commit = Commit.new id
+        hash.merge! id => commit.time
+        hash.merge! commit.history_times
+      end
+
+      data = {
+        time:          options.fetch(:time) { Time.now },
+        author:        options.fetch(:author),
+        message:       options.fetch(:message),
+        parents:       options.fetch(:parents),
+        index:         options.fetch(:index),
+        delta:         options.fetch(:delta),
+        base:          options[:parents].count == 2 ? options.fetch(:base) : options[:parents].first,
+        base_delta:    options[:parents].count == 2 ? options.fetch(:base_delta) : options.fetch(:delta),
+        history_times: Blob.write(:history_times, history_times)
+      }
 
       new Blob.write(:commit, data)
     end

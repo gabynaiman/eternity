@@ -57,7 +57,8 @@ module Eternity
       raise 'Nothing to commit' unless changes?
 
       commit! message: options.fetch(:message), 
-              author: options.fetch(:author)
+              author:  options.fetch(:author),
+              time:    options.fetch(:time) { Time.now }
     end
 
     def branch(name)
@@ -122,11 +123,11 @@ module Eternity
       
       elsif current_commit.id != target_commit.id && !current_commit.fast_forward?(target_commit)
         patch = Patch.new current_commit, target_commit
-        commit! author: 'System',
-                message: "Merge #{target_commit.id} into #{current_commit.id}",
-                parents: patch.commit_ids,
-                index: write_index(patch.index_delta),
-                base: patch.base_commit.id,
+        commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
+                author:     'System',
+                parents:    patch.commit_ids,
+                index:      write_index(patch.index_delta),
+                base:       patch.base_commit.id,
                 base_delta: Blob.write(:delta, patch.base_delta)
         patch
       
@@ -137,6 +138,10 @@ module Eternity
 
     def revert
       reverted_delta.tap { tracker.revert }
+    end
+
+    def log
+      current_commit? ? ([current_commit] + current_commit.history) : []
     end
 
     def destroy
