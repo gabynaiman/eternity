@@ -192,14 +192,10 @@ module Eternity
           hash[collection] = {}
           changes.each do |id, change|
             hash[collection][id] = 
-              if change['action'] == INSERT
-                {'action' => DELETE}
-              elsif change['action'] == UPDATE
-                {'action' => UPDATE, 'data' => index[collection][id].data}
-              elsif change['action'] == DELETE
-                {'action' => INSERT, 'data' => index[collection][id].data}
-              else
-                raise "Invalid change for #{collection} #{id} (#{change})"
+              case change['action']
+                when INSERT then {'action' => DELETE}
+                when UPDATE then {'action' => UPDATE, 'data' => index[collection][id].data}
+                when DELETE then {'action' => INSERT, 'data' => index[collection][id].data}
               end
           end
         end
