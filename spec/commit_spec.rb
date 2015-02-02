@@ -62,6 +62,18 @@ describe Repository, 'Commit' do
     error.message.must_equal 'Nothing to commit'
   end
 
+  it 'Empty author' do
+    repository[:countries].insert 'AR', name: 'Argentina'
+    error = proc { repository.commit author: '', message: 'Commit message' }.must_raise RuntimeError
+    error.message.must_equal 'Author must be present'
+  end
+
+  it 'Empty message' do
+    repository[:countries].insert 'AR', name: 'Argentina'
+    error = proc { repository.commit author: 'User', message: '' }.must_raise RuntimeError
+    error.message.must_equal 'Message must be present'
+  end
+
   describe 'With index' do
 
     def assert_transeint_index
