@@ -61,7 +61,7 @@ module Eternity
     end
 
     def fast_forward?(commit)
-      return commit.id.nil? if first?
+      return commit.nil? if first?
       parent_ids.any? { |id| id == commit.id } || parents.map { |c| c.fast_forward?(commit) }.inject(:|)
     end
 
@@ -76,6 +76,16 @@ module Eternity
     def first?
       parent_ids.compact.empty?
     end
+
+    def nil?
+      id.nil?
+    end
+
+    def ==(commit)
+      commit.class == self.class && 
+      commit.id == id
+    end
+    alias_method :eql?, :==
 
     def self.create(options)
       raise 'Author must be present' if options[:author].to_s.strip.empty?
@@ -103,8 +113,8 @@ module Eternity
     end
 
     def self.base_of(commit_1, commit_2)
-      history_1 = []
-      history_2 = []
+      history_1 = [commit_1.id]
+      history_2 = [commit_2.id]
 
       base_1 = commit_1
       base_2 = commit_2

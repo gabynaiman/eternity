@@ -39,6 +39,7 @@ module Eternity
     private
 
     def base_delta_of(commit)
+      return {} if commit == base_commit
       history = [commit] + commit.base_history_at(base_commit)[0..-2]
       merge history.reverse.map(&:base_delta)
     end
@@ -78,10 +79,7 @@ module Eternity
           hash[collection] = {}
          
           elements.each do |id, change|
-            if change.nil?
-              change = {'action' => DELETE}
-
-            elsif change['action'] == INSERT && current_action_for(collection, id) == INSERT
+            if change['action'] == INSERT && current_action_for(collection, id) == INSERT
               data = ConflictResolver.resolve current_delta[collection][id]['data'], 
                                               change['data']
               change = {'action' => UPDATE, 'data' => data}
@@ -102,6 +100,8 @@ module Eternity
 
             hash[collection][id] = change if change
           end
+
+          hash.delete collection if hash[collection].empty?
         end
       end
     end

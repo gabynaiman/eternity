@@ -96,11 +96,11 @@ module Eternity
 
       current[:branch] = branch
 
-      Patch.new original_commit, current_commit unless original_commit.id == current_commit.id
+      Patch.new original_commit, current_commit unless original_commit == current_commit
     end
 
     def push
-      raise 'Push rejected (non fast forward)' if current_commit.id != Branch[current_branch].id && !current_commit.fast_forward?(Branch[current_branch])
+      raise 'Push rejected (non fast forward)' if current_commit != Branch[current_branch] && !current_commit.fast_forward?(Branch[current_branch])
       push!
     end
 
@@ -119,9 +119,9 @@ module Eternity
         patch = Patch.new current_commit, target_commit
         branches[current_branch] = target_commit.id
         current[:commit] = target_commit.id
-        patch
-      
-      elsif current_commit.id != target_commit.id && !current_commit.fast_forward?(target_commit)
+        patch.index_delta
+
+      elsif current_commit != target_commit && !current_commit.fast_forward?(target_commit)
         patch = Patch.new current_commit, target_commit
         commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
                 author:     'System',
@@ -129,10 +129,10 @@ module Eternity
                 index:      write_index(patch.index_delta),
                 base:       patch.base_commit.id,
                 base_delta: Blob.write(:delta, patch.base_delta)
-        patch
+        patch.index_delta
       
       else
-        nil
+        {}
       end
     end
 
