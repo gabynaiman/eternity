@@ -69,12 +69,7 @@ module Eternity
             hash[collection] = {}
            
             elements.each do |id, change|
-              if change.nil?
-                if base_index[collection].include?(id) && current_action_for(collection, id) != DELETE
-                  change = {'action' => DELETE}
-                end
-
-              elsif change['action'] == INSERT && current_action_for(collection, id) == INSERT
+              if change['action'] == INSERT && current_action_for(collection, id) == INSERT
                 data = ConflictResolver.resolve current_delta[collection][id]['data'], 
                                                 change['data']
                 change = {'action' => UPDATE, 'data' => data}
