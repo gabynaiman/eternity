@@ -9,6 +9,7 @@ module Eternity
       @tracker = Tracker.new self
       @current = Restruct::Hash.new redis: Eternity.redis, id: id[:current]
       @branches = Restruct::Hash.new redis: Eternity.redis, id: id[:branches]
+      @locker = Locky.new @name, Eternity.locker_adapter
     end
 
     def [](collection)
@@ -56,9 +57,11 @@ module Eternity
     def commit(options)
       raise 'Nothing to commit' unless changes?
 
-      commit! message: options.fetch(:message), 
-              author:  options.fetch(:author),
-              time:    options.fetch(:time) { Time.now }
+      locker.lock :commit do
+        commit! message: options.fetch(:message), 
+                author:  options.fetch(:author),
+                time:    options.fetch(:time) { Time.now }
+      end
     end
 
     def branch(name)
@@ -71,22 +74,24 @@ module Eternity
     def checkout(options)
       raise "Can't checkout with uncommitted changes" if changes?
 
-      original_commit = current_commit
+      locker.lock :checkout do
+        original_commit = current_commit
 
-      commit_id, branch = extract_commit_and_branch options
+        commit_id, branch = extract_commit_and_branch options
 
-      if commit_id
-        raise "Invalid commit #{commit_id}" unless Commit.exists? commit_id
-        current[:commit] = commit_id
-        branches[branch] = commit_id
-      else
-        current.delete :commit
-        branches.delete branch
+        if commit_id
+          raise "Invalid commit #{commit_id}" unless Commit.exists? commit_id
+          current[:commit] = commit_id
+          branches[branch] = commit_id
+        else
+          current.delete :commit
+          branches.delete branch
+        end
+
+        current[:branch] = branch
+
+        Patch.diff(original_commit, current_commit).delta
       end
-
-      current[:branch] = branch
-
-      Patch.diff(original_commit, current_commit).delta
     end
 
     def merge(options)
@@ -125,7 +130,9 @@ module Eternity
     end
 
     def revert
-      Delta.revert(delta, current_commit).tap { tracker.revert }
+      locker.lock :revert do
+        Delta.revert(delta, current_commit).tap { tracker.revert }
+      end
     end
 
     def log
@@ -148,7 +155,7 @@ module Eternity
 
     private
 
-    attr_reader :tracker, :current
+    attr_reader :tracker, :current, :locker
 
     def commit!(options)
       changes = delta
@@ -164,18 +171,20 @@ module Eternity
     end
 
     def merge!(target_commit)
-      patch = Patch.merge current_commit, target_commit
+      locker.lock :merge do
+        patch = Patch.merge current_commit, target_commit
 
-      raise 'Already merged' if patch.merged?
+        raise 'Already merged' if patch.merged?
 
-      commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
-              author:     'System',
-              parents:    [current_commit.id, target_commit.id],
-              index:      write_index(patch.delta),
-              base:       patch.base_commit.id,
-              base_delta: Blob.write(:delta, patch.base_delta)
+        commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
+                author:     'System',
+                parents:    [current_commit.id, target_commit.id],
+                index:      write_index(patch.delta),
+                base:       patch.base_commit.id,
+                base_delta: Blob.write(:delta, patch.base_delta)
 
-      patch.delta
+        patch.delta
+      end
     end
 
     def write_index(delta)

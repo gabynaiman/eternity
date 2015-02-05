@@ -7,6 +7,7 @@ require 'fileutils'
 require 'forwardable'
 require 'restruct'
 require 'base64'
+require 'locky'
 
 module Eternity
 
@@ -23,6 +24,10 @@ module Eternity
   attr_config :blob_cache_expiration, 24 * 60 * 60 # 1 day in seconds
   attr_config :blob_path, File.join(Dir.home, '.eternity')
   attr_config :logger, Logger.new(STDOUT)
+
+  def self.locker_adapter
+    @locker_adapter ||= Restruct::Hash.new redis: redis, id: keyspace[:locker]
+  end
 
   def self.redis_keys
     redis.call 'KEYS', keyspace['*']
