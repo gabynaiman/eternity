@@ -166,6 +166,8 @@ module Eternity
     def merge!(target_commit)
       patch = Patch.merge current_commit, target_commit
 
+      raise 'Already merged' if patch.merged?
+
       commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
               author:     'System',
               parents:    [current_commit.id, target_commit.id],

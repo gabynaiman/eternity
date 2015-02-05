@@ -53,13 +53,13 @@ module Eternity
         @base_delta ||= merged? ? {} : Delta.merge([current_delta, delta])
       end
 
-      private
-
       def merged?
         @merged ||= current_commit == target_commit ||
                     target_commit.fast_forward?(current_commit) || 
                     current_commit.fast_forward?(target_commit)
       end
+
+      private
 
       def calculate_delta
         return {} if merged?
