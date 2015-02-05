@@ -9,7 +9,7 @@ describe Tracker do
     tracker.flatten.must_be_empty
   end
 
-  it 'Inseprt' do
+  it 'Insert' do
     tracker[:countries].insert 'AR', name: 'Argentina'
 
     tracker.to_h.must_equal 'countries' => {'AR' => [{'action' => 'insert', 'blob' => digest(name: 'Argentina')}]}

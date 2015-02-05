@@ -12,9 +12,12 @@ module Eternity
       index.id.sections.last
     end
 
+    def include?(id)
+      index.key? id
+    end
+
     def [](id)
-      return nil unless index.key? id
-      Blob.new :data, index[id]
+      include?(id) ? Blob.new(:data, index[id]) : nil
     end
 
     def insert(id, data)

@@ -1,110 +1,132 @@
 module Eternity
-  class Patch
+  module Patch
 
-    attr_reader :current_commit, :target_commit
-    
-    def initialize(current_commit, target_commit)
-      @current_commit = current_commit
-      @target_commit = target_commit
+    def self.merge(current_commit, target_commit)
+      Merge.new current_commit, target_commit
     end
 
-    def base_commit
-      @base_commit ||= Commit.base_of current_commit, target_commit
+    def self.diff(current_commit, target_commit)
+      Diff.new current_commit, target_commit
     end
 
-    def current_delta
-      @current_delta ||= base_delta_of current_commit
-    end
+    module Common
 
-    def target_delta
-      @target_delta ||= base_delta_of target_commit
-    end
+      attr_reader :current_commit, :target_commit
 
-    def index_delta 
-      @index_delta ||= calculate_index_delta
-    end
-
-    def base_delta 
-      @base_delta ||= merge [current_delta, index_delta]
-    end
-
-    def commits
-      [current_commit, target_commit]
-    end
-
-    def commit_ids
-      commits.map(&:id)
-    end
-
-    private
-
-    def base_delta_of(commit)
-      return {} if commit == base_commit
-      history = [commit] + commit.base_history_at(base_commit)[0..-2]
-      merge history.reverse.map(&:base_delta)
-    end
-
-    def merge(deltas)
-      union(deltas).each_with_object({}) do |(collection, elements), hash|
-        hash[collection] = {}
-        elements.each do |id, changes|
-          hash[collection][id] = TrackFlatter.flatten changes
-        end
+      def initialize(current_commit, target_commit)
+        @current_commit = current_commit
+        @target_commit = target_commit
       end
-    end
 
-    def union(deltas)
-      deltas.each_with_object({}) do |delta, hash|
-        delta.each do |collection, elements|
-          hash[collection] ||= {}
-          elements.each do |id, change|
-            hash[collection][id] ||= []
-            hash[collection][id] << change
-          end
-        end
+      def base_commit
+        @base_commit ||= Commit.base_of current_commit, target_commit
       end
+
+      def delta 
+        @delta ||= calculate_delta
+      end
+
+      private
+
+      def current_delta
+        @current_delta ||= base_delta_of current_commit, base_commit
+      end
+
+      def target_delta
+        @target_delta ||= base_delta_of target_commit, base_commit
+      end
+
+      def base_delta_of(commit, base)
+        return {} if commit == base
+        history = [commit] + commit.base_history_at(base)[0..-2]
+        Delta.merge history.reverse.map(&:base_delta)
+      end
+
     end
 
-    def has_current_changes_for?(collection, id)
-      current_delta.key?(collection) && current_delta[collection].key?(id)
-    end
 
-    def current_action_for(collection, id)
-      current_delta[collection][id]['action'] if has_current_changes_for? collection, id
-    end
+    class Merge
+      
+      include Common
 
-    def calculate_index_delta
-      base_commit.with_index do |base_index|
-        target_delta.each_with_object({}) do |(collection, elements), hash|
-          hash[collection] = {}
-         
-          elements.each do |id, change|
-            if change['action'] == INSERT && current_action_for(collection, id) == INSERT
-              data = ConflictResolver.resolve current_delta[collection][id]['data'], 
-                                              change['data']
-              change = {'action' => UPDATE, 'data' => data}
-            
-            elsif change['action'] == UPDATE
-              if current_action_for(collection, id) == UPDATE
+      def base_delta
+        @base_delta ||= merged? ? {} : Delta.merge([current_delta, delta])
+      end
+
+      private
+
+      def merged?
+        @merged ||= current_commit == target_commit ||
+                    target_commit.fast_forward?(current_commit) || 
+                    current_commit.fast_forward?(target_commit)
+      end
+
+      def calculate_delta
+        return {} if merged?
+
+        base_commit.with_index do |base_index|
+          target_delta.each_with_object({}) do |(collection, elements), hash|
+            hash[collection] = {}
+           
+            elements.each do |id, change|
+              if change.nil?
+                if base_index[collection].include?(id) && current_action_for(collection, id) != DELETE
+                  change = {'action' => DELETE}
+                end
+
+              elsif change['action'] == INSERT && current_action_for(collection, id) == INSERT
                 data = ConflictResolver.resolve current_delta[collection][id]['data'], 
-                                                change['data'], 
-                                                base_index[collection][id].data
-                change = change.merge 'data' => data
-              elsif current_action_for(collection, id) == DELETE
-                change = {'action' => INSERT, 'data' => change['data']}
+                                                change['data']
+                change = {'action' => UPDATE, 'data' => data}
+              
+              elsif change['action'] == UPDATE
+                if current_action_for(collection, id) == UPDATE
+                  data = ConflictResolver.resolve current_delta[collection][id]['data'], 
+                                                  change['data'], 
+                                                  base_index[collection][id].data
+                  change = change.merge 'data' => data
+                elsif current_action_for(collection, id) == DELETE
+                  change = {'action' => INSERT, 'data' => change['data']}
+                end
+              
+              elsif change['action'] == DELETE && current_action_for(collection, id) == DELETE
+                change = nil
               end
-            
-            elsif change['action'] == DELETE && current_action_for(collection, id) == DELETE
-              change = nil
+
+              hash[collection][id] = change if change
             end
 
-            hash[collection][id] = change if change
+            hash.delete collection if hash[collection].empty?
           end
-
-          hash.delete collection if hash[collection].empty?
         end
       end
+
+      def has_current_changes_for?(collection, id)
+        current_delta.key?(collection) && current_delta[collection].key?(id)
+      end
+
+      def current_action_for(collection, id)
+        current_delta[collection][id]['action'] if has_current_changes_for? collection, id
+      end
+
     end
-    
+
+
+    class Diff
+      
+      include Common
+
+      private
+
+      def calculate_delta
+        if target_commit.fast_forward? current_commit
+          base_delta_of target_commit, current_commit
+        else
+          Delta.merge [Delta.revert(current_delta, base_commit), target_delta]
+        end
+      end
+
+    end
+
   end
 end

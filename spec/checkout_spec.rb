@@ -16,12 +16,14 @@ describe Repository, 'Checkout' do
       commit_2 = repository.commit author: 'User', message: 'Commit 2'
 
       repository.current_branch.must_equal 'master'
-      repository.current_commit.id.must_equal commit_2.id
+      repository.current_commit.must_equal commit_2
 
-      repository.checkout branch: :test_branch
+      delta = repository.checkout branch: :test_branch
+
+      delta.must_equal 'countries' => {'UY' => {'action' => 'delete'}}
 
       repository.current_branch.must_equal 'test_branch'
-      repository.current_commit.id.must_equal commit_1.id
+      repository.current_commit.must_equal commit_1
 
       repository.branches.to_h.must_equal 'master' => commit_2.id, 
                                        'test_branch' => commit_1.id
@@ -34,10 +36,12 @@ describe Repository, 'Checkout' do
       
       Branch[:test_branch] = commit.id
 
-      repository.checkout branch: :test_branch
+      delta = repository.checkout branch: :test_branch
+
+      delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
 
       repository.current_branch.must_equal 'test_branch'
-      repository.current_commit.id.must_equal commit.id
+      repository.current_commit.must_equal commit
       repository.branches.to_h.must_equal 'test_branch' => commit.id
     end
 
@@ -58,26 +62,40 @@ describe Repository, 'Checkout' do
       commit_2 = repository.commit author: 'User', message: 'Commit 2'
 
       repository.current_branch.must_equal 'master'
-      repository.current_commit.id.must_equal commit_2.id
+      repository.current_commit.must_equal commit_2
       repository.branches.to_h.must_equal 'master' => commit_2.id
 
-      repository.checkout commit: commit_1.id
+      delta = repository.checkout commit: commit_1.id
+
+      delta.must_equal 'countries' => {'UY' => {'action' => 'delete'}}
 
       repository.current_branch.must_equal 'master'
-      repository.current_commit.id.must_equal commit_1.id
+      repository.current_commit.must_equal commit_1
       repository.branches.to_h.must_equal 'master' => commit_1.id
     end
 
     it 'Invalid' do
-      repository[:countries].insert 'AR', name: 'Argentina'
-      commit = repository.commit author: 'User', message: 'Commit message'
-
-      repository.current_branch.must_equal 'master'
-      repository.current_commit.id.must_equal commit.id
-      repository.branches.to_h.must_equal 'master' => commit.id
-
       error = proc { repository.checkout commit: '123456789' }.must_raise RuntimeError
       error.message.must_equal 'Invalid commit 123456789'
+    end
+
+    it 'Null' do
+      repository[:countries].insert 'AR', name: 'Argentina'
+      commit_1 = repository.commit author: 'User', message: 'Commit 1'
+
+      repository[:countries].insert 'UY', name: 'Uruguay'
+      commit_2 = repository.commit author: 'User', message: 'Commit 2'
+
+      delta = repository.checkout commit: nil
+
+      delta.must_equal 'countries' => {
+        'AR' => {'action' => 'delete'},
+        'UY' => {'action' => 'delete'}
+      }
+
+      repository.current_branch.must_equal 'master'
+      repository.current_commit.must_be_nil
+      repository.branches.to_h.must_be_empty
     end
 
   end

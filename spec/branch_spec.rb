@@ -35,7 +35,7 @@ describe Repository, 'Branch' do
       repository[:countries].insert 'AR', name: 'Argentina'
       commit = repository.commit author: 'User', message: 'Commit message'
 
-      repository.current_commit.id.must_equal commit.id
+      repository.current_commit.must_equal commit
       repository.current_branch.must_equal 'master'
       repository.branches.to_h.must_equal 'master' => commit.id
 

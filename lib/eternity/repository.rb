@@ -71,19 +71,9 @@ module Eternity
     def checkout(options)
       raise "Can't checkout with uncommitted changes" if changes?
 
-      branch = options.fetch(:branch) { current_branch }
-      
-      commit_id = options.fetch(:commit) do
-        if branches.key? branch
-          branches[branch]
-        elsif Branch.exists?(branch)
-          Branch[branch].id
-        else
-          raise "Invalid branch #{branch}"
-        end
-      end
-
       original_commit = current_commit
+
+      commit_id, branch = extract_commit_and_branch options
 
       if commit_id
         raise "Invalid commit #{commit_id}" unless Commit.exists? commit_id
@@ -96,7 +86,17 @@ module Eternity
 
       current[:branch] = branch
 
-      Patch.new original_commit, current_commit unless original_commit == current_commit
+      Patch.diff(original_commit, current_commit).delta
+    end
+
+    def merge(options)
+      raise "Can't merge with uncommitted changes" if changes?
+
+      commit_id = extract_commit options
+
+      raise "Invalid commit #{commit_id}" unless Commit.exists? commit_id
+
+      merge! Commit.new(commit_id)
     end
 
     def push
@@ -115,29 +115,17 @@ module Eternity
 
       target_commit = Branch[current_branch]
 
-      if target_commit.fast_forward?(current_commit)
-        patch = Patch.new current_commit, target_commit
-        branches[current_branch] = target_commit.id
-        current[:commit] = target_commit.id
-        patch.index_delta
-
-      elsif current_commit != target_commit && !current_commit.fast_forward?(target_commit)
-        patch = Patch.new current_commit, target_commit
-        commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
-                author:     'System',
-                parents:    patch.commit_ids,
-                index:      write_index(patch.index_delta),
-                base:       patch.base_commit.id,
-                base_delta: Blob.write(:delta, patch.base_delta)
-        patch.index_delta
-      
-      else
+      if current_commit == target_commit || current_commit.fast_forward?(target_commit)
         {}
+      elsif target_commit.fast_forward?(current_commit)
+        checkout commit: target_commit.id
+      else 
+        merge! target_commit
       end
     end
 
     def revert
-      reverted_delta.tap { tracker.revert }
+      Delta.revert(delta, current_commit).tap { tracker.revert }
     end
 
     def log
@@ -175,6 +163,19 @@ module Eternity
       end
     end
 
+    def merge!(target_commit)
+      patch = Patch.merge current_commit, target_commit
+
+      commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
+              author:     'System',
+              parents:    [current_commit.id, target_commit.id],
+              index:      write_index(patch.delta),
+              base:       patch.base_commit.id,
+              base_delta: Blob.write(:delta, patch.base_delta)
+
+      patch.delta
+    end
+
     def write_index(delta)
       current_commit.with_index do |index|
         index.apply delta
@@ -186,20 +187,24 @@ module Eternity
       Blob.write :delta, delta
     end
 
-    def reverted_delta
-      current_commit.with_index do |index|
-        delta.each_with_object({}) do |(collection, changes), hash|
-          hash[collection] = {}
-          changes.each do |id, change|
-            hash[collection][id] = 
-              case change['action']
-                when INSERT then {'action' => DELETE}
-                when UPDATE then {'action' => UPDATE, 'data' => index[collection][id].data}
-                when DELETE then {'action' => INSERT, 'data' => index[collection][id].data}
-              end
-          end
+    def extract_commit(options)
+      extract_commit_and_branch(options).first
+    end
+
+    def extract_commit_and_branch(options)
+      branch = options.fetch(:branch) { current_branch }
+      
+      commit_id = options.fetch(:commit) do
+        if branches.key? branch
+          branches[branch]
+        elsif Branch.exists?(branch)
+          Branch[branch].id
+        else
+          raise "Invalid branch #{branch}"
         end
       end
+
+      [commit_id, branch]
     end
 
   end

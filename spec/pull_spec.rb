@@ -25,7 +25,7 @@ describe Repository, 'Pull' do
     delta = repository.pull
 
     delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
-    repository.current_commit.id.must_equal commit.id
+    repository.current_commit.must_equal commit
     repository.branches[repository.current_branch].must_equal commit.id
   end
 
@@ -36,8 +36,8 @@ describe Repository, 'Pull' do
     
     delta = repository.pull
 
-    delta.must_equal Hash.new
-    repository.current_commit.id.must_equal commit_1.id
+    delta.must_be_empty
+    repository.current_commit.must_equal commit_1
   end
 
   it 'Ahead of branch' do
@@ -51,8 +51,8 @@ describe Repository, 'Pull' do
 
     delta = repository.pull
 
-    delta.must_equal Hash.new
-    repository.current_commit.id.must_equal commit_2.id
+    delta.must_be_empty
+    repository.current_commit.must_equal commit_2
   end
 
   it 'Fast-forward' do
@@ -70,7 +70,7 @@ describe Repository, 'Pull' do
     repository.push
 
     other_repository.wont_be :changes?
-    other_repository.current_commit.id.must_equal commit_1.id
+    other_repository.current_commit.must_equal commit_1
     other_repository.branches[other_repository.current_branch].must_equal commit_1.id
 
     delta = other_repository.pull
@@ -78,7 +78,7 @@ describe Repository, 'Pull' do
     delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
 
     other_repository.wont_be :changes?
-    other_repository.current_commit.id.must_equal commit_2.id
+    other_repository.current_commit.must_equal commit_2
     other_repository.branches[other_repository.current_branch].must_equal commit_2.id
   end
 
@@ -110,6 +110,7 @@ describe Repository, 'Pull' do
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
     repository.current_commit.tap do |commit|
+      commit.must_be :merge?
       commit.parent_ids.must_equal [commit_4.id, commit_3.id]
       commit.base.id.must_equal commit_1.id
       commit.base_delta.must_equal 'countries' => {
@@ -148,6 +149,7 @@ describe Repository, 'Pull' do
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
     repository.current_commit.tap do |commit|
+      commit.must_be :merge?
       commit.parent_ids.must_equal [commit_3.id, commit_2.id]
       commit.base.id.must_equal commit_1.id
       commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina 2'}}}
@@ -179,6 +181,7 @@ describe Repository, 'Pull' do
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
     repository.current_commit.tap do |commit|
+      commit.must_be :merge?
       commit.parent_ids.must_equal [commit_3.id, commit_2.id]
       commit.base.id.must_equal commit_1.id
       commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG', 'number' => 54}}}
@@ -210,6 +213,7 @@ describe Repository, 'Pull' do
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
     
     repository.current_commit.tap do |commit|
+      commit.must_be :merge?
       commit.parent_ids.must_equal [commit_3.id, commit_2.id]
       commit.base.id.must_equal commit_1.id
       commit.base_delta.must_equal 'countries' => {'X' => {'action' => 'insert', 'data' => {'name' => 'X1', 'number' => 2, 'code' => 1}}}
@@ -239,11 +243,12 @@ describe Repository, 'Pull' do
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
     delta = repository.pull
 
-    delta.must_equal Hash.new
+    delta.must_be_empty
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
     
     repository.current_commit.tap do |commit|
+      commit.must_be :merge?
       commit.parent_ids.must_equal [commit_3.id, commit_2.id]
       commit.base.id.must_equal commit_1.id
       commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'delete'}}
@@ -275,6 +280,7 @@ describe Repository, 'Pull' do
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
     repository.current_commit.tap do |commit|
+      commit.must_be :merge?
       commit.parent_ids.must_equal [commit_3.id, commit_2.id]
       commit.base.id.must_equal commit_1.id
       commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}

@@ -77,6 +77,10 @@ module Eternity
       parent_ids.compact.empty?
     end
 
+    def merge?
+      parent_ids.count == 2
+    end
+
     def nil?
       id.nil?
     end

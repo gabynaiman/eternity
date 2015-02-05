@@ -25,14 +25,36 @@ class Minitest::Spec
     Eternity.redis
   end
 
-  def print_keys
-    puts Eternity.redis_keys.sort
-  end
-
   def digest(data)
     Blob.digest(Blob.serialize(data))
   end
 
+  def print_keys
+    puts Eternity.redis_keys.sort
+  end
+
+  def print_commit(commit)
+    puts "COMMIT: #{commit.author} - #{commit.message}"
+    puts "MERGE: #{commit.merge?}"
+    puts 'DELTA:'
+    puts JSON.pretty_generate(commit.delta)
+    if commit.merge?
+      puts "BASE: #{commit.base.author} - #{commit.base.message}"
+      puts 'BASE DELTA:'
+      puts JSON.pretty_generate(commit.base_delta)
+    end
+    puts 'INDEX:'
+    commit.with_index do |index|
+      index.each do |collection, collection_index|
+        puts collection
+        collection_index.ids.each do |id|
+          puts "#{id} -> #{collection_index[id].data}"
+        end
+      end
+    end
+    puts '------------------------------------'
+  end
+  
   after do
     Eternity.clear_redis
     Eternity.clear_file_system
