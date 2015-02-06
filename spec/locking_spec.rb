@@ -96,7 +96,7 @@ describe 'Locking' do
 
     assert_locked { repository[:countries].update 'AR', name: 'Republica Argentina' }
 
-    repository.delta.to_h.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
   end
 
   it 'Delete' do
@@ -106,7 +106,7 @@ describe 'Locking' do
 
     assert_locked { repository[:countries].delete 'AR' }
 
-    repository.delta.to_h.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
   end
 
   it 'Revert' do
@@ -116,7 +116,7 @@ describe 'Locking' do
 
     assert_locked { repository[:countries].revert 'AR' }
 
-    repository.delta.to_h.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
   end
 
 end
