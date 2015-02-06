@@ -120,6 +120,16 @@ describe Tracker do
     tracker.flatten.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
   end
 
+  it 'Revert collection' do
+    tracker[:countries].insert 'AR', name: 'Argentina'
+    tracker[:cities].insert 'CABA', name: 'Ciudad Autonoma de Buenos Aires'
+
+    tracker[:countries].revert_all
+
+    tracker.to_h.must_equal 'cities' => {'CABA' => [{'action' => 'insert', 'blob' => digest(name: 'Ciudad Autonoma de Buenos Aires')}]}
+    tracker.flatten.must_equal 'cities' => {'CABA' => {'action' => 'insert', 'data' => {'name' => 'Ciudad Autonoma de Buenos Aires'}}}
+  end
+
   it 'Revert all' do
     tracker[:countries].insert 'AR', name: 'Argentina'
     tracker[:cities].insert 'CABA', name: 'Ciudad Autonoma de Buenos Aires'

@@ -6,7 +6,7 @@ module Eternity
     extend Forwardable
     def_delegators :changes, :to_h, :to_primitive, :count, :[], :destroy
 
-    def initialize(options={})
+    def initialize(options)
       @changes = Changes.new options
     end
 
@@ -26,7 +26,11 @@ module Eternity
       changes[id].revert
     end
 
-    alias_method :revert_all, :destroy
+    def revert_all
+      locker.lock :revert_all do
+        changes.destroy
+      end
+    end
 
     def flatten
       changes.each_with_object({}) do |(id, tracker), hash|
@@ -38,6 +42,14 @@ module Eternity
     private
 
     attr_reader :changes
+
+    def locker
+      Locky.new repository_name, Eternity.locker_adapter
+    end
+
+    def repository_name
+      changes.id.sections.reverse[2]
+    end
 
   end
 end

@@ -20,7 +20,11 @@ module Eternity
       track DELETE
     end
 
-    alias_method :revert, :destroy
+    def revert
+      locker.lock :revert do
+        changes.destroy
+      end
+    end
 
     def flatten
       TrackFlatter.flatten changes
@@ -31,12 +35,22 @@ module Eternity
     attr_reader :changes
 
     def track(action, data=nil)
-      change = {'action' => action}
-      change['blob'] = Blob.write(:data, data) if data
+      locker.lock action do
+        change = {'action' => action}
+        change['blob'] = Blob.write(:data, data) if data
 
-      Eternity.logger.debug(self.class) { "#{changes.id} - #{change} - #{data}" }
-      
-      changes << change
+        Eternity.logger.debug(self.class) { "#{changes.id} - #{change} - #{data}" }
+        
+        changes << change
+      end
+    end
+
+    def locker
+      Locky.new repository_name, Eternity.locker_adapter
+    end
+
+    def repository_name
+      changes.id.sections.reverse[3]
     end
 
   end
