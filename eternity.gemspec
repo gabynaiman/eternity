@@ -20,8 +20,8 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'redic', '~> 1.2.0'
   spec.add_dependency 'restruct', '~> 0.0.3'
-  spec.add_dependency 'class_config', '~> 0.0.1'
-  spec.add_dependency 'locky', '~> 0.0.1'
+  spec.add_dependency 'class_config', '~> 0.0.2'
+  spec.add_dependency 'locky', '~> 0.0.2'
 
   if RUBY_PLATFORM == 'java'
     spec.add_dependency 'msgpack-jruby'
