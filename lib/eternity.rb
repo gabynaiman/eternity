@@ -8,6 +8,7 @@ require 'forwardable'
 require 'restruct'
 require 'base64'
 require 'locky'
+require 'transparent_proxy'
 
 module Eternity
 

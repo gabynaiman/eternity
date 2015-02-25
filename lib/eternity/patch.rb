@@ -23,7 +23,7 @@ module Eternity
       end
 
       def delta 
-        @delta ||= calculate_delta
+        @delta ||= TransparentProxy.new { calculate_delta }
       end
 
       private
