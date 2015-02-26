@@ -72,4 +72,12 @@ describe Blob do
     Blob.count.must_equal 0
   end
 
+  it 'Normalize serialization' do
+    time = Time.now
+    data_1 = {key_1: 1, key_2: time}
+    data_2 = {key_2: time.strftime(TIME_FORMAT), key_1: 1}
+
+    Blob.serialize(data_1).must_equal Blob.serialize(data_2)
+  end
+
 end

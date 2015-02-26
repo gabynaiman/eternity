@@ -32,14 +32,8 @@ module Eternity
         Digest::SHA1.hexdigest string
       end
 
-      def sanitize(data)
-        data.dup.tap do |d|
-          d.each { |k,v| d[k] = v.strftime TIME_FORMAT if v.respond_to? :strftime }
-        end
-      end
-
       def serialize(data)
-        MessagePack.pack sanitize(data)
+        MessagePack.pack normalize(data)
       end
 
       def deserialize(string)
@@ -57,6 +51,11 @@ module Eternity
       end
 
       private
+
+      def normalize(data)
+        sorted_data = Hash[data.sort_by { |k,v| k.to_s }]
+        sorted_data.each { |k,v| sorted_data[k] = v.strftime TIME_FORMAT if v.respond_to? :strftime }
+      end
 
       def write_redis(type, sha1, serialization)
         Eternity.redis.call 'SET', Eternity.keyspace[:blob][type][sha1], serialization, 
