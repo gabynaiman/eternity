@@ -190,7 +190,7 @@ describe Repository, 'Pull' do
     end
   end
 
-  it 'Merge added same object in differents repositorys' do
+  it 'Merge added same object in differents repositories' do
     repository[:countries].insert 'AR', name: 'Argentina'
     commit_1 = repository.commit author: 'User', message: 'Commit 1'
     repository.push
@@ -225,7 +225,7 @@ describe Repository, 'Pull' do
     end
   end
 
-  it 'Merge removed same object in differents repositorys' do
+  it 'Merge removed same object in differents repositories' do
     repository[:countries].insert 'AR', name: 'Argentina'
     commit_1 = repository.commit author: 'User', message: 'Commit 1'
     repository.push
