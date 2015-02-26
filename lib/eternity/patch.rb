@@ -114,11 +114,7 @@ module Eternity
       private
 
       def calculate_delta
-        if target_commit.fast_forward? current_commit
-          base_delta_of target_commit, current_commit
-        else
-          Delta.merge [Delta.revert(current_delta, base_commit), target_delta]
-        end
+        Delta.merge [Delta.revert(current_delta, base_commit), target_delta]
       end
 
     end
