@@ -40,6 +40,11 @@ module Eternity
         MessagePack.unpack string
       end
 
+      def normalize(data)
+        sorted_data = Hash[data.sort_by { |k,v| k.to_s }]
+        sorted_data.each { |k,v| sorted_data[k] = v.utc.strftime TIME_FORMAT if v.respond_to? :utc }
+      end
+
       def clear_cache
         Eternity.redis.call('KEYS', Eternity.keyspace[:blob]['*']).each_slice(1000) do |keys|
           Eternity.redis.call 'DEL', *keys
@@ -51,11 +56,6 @@ module Eternity
       end
 
       private
-
-      def normalize(data)
-        sorted_data = Hash[data.sort_by { |k,v| k.to_s }]
-        sorted_data.each { |k,v| sorted_data[k] = v.utc.strftime TIME_FORMAT if v.respond_to? :utc }
-      end
 
       def write_redis(type, sha1, serialization)
         Eternity.redis.call 'SET', Eternity.keyspace[:blob][type][sha1], serialization, 
