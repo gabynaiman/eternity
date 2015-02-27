@@ -149,8 +149,15 @@ module Eternity
       {
         'current' => current.to_h,
         'branches' => branches.to_h,
-        'tracker' => tracker.to_h
+        'delta' => delta
       }
+    end
+    alias_method :dump, :to_h
+
+    def restore(dump)
+      current.merge! dump['current']
+      branches.merge! dump['branches']
+      self.delta = dump['delta']
     end
 
     private
