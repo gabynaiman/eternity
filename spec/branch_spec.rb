@@ -25,6 +25,12 @@ describe Repository, 'Branch' do
       refute Branch.exists?(:test)
     end
 
+    it 'Names' do
+      branches = %w(test_1 test_2 test_3)
+      branches.each { |b| Branch[b] = commit_id }
+      Branch.names.must_equal branches
+    end
+
   end
 
   describe 'Local' do

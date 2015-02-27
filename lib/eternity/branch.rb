@@ -18,6 +18,10 @@ module Eternity
         branches.delete name
       end
 
+      def names
+        branches.keys
+      end
+
       private
 
       def branches
