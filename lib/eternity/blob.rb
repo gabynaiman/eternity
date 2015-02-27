@@ -54,7 +54,7 @@ module Eternity
 
       def normalize(data)
         sorted_data = Hash[data.sort_by { |k,v| k.to_s }]
-        sorted_data.each { |k,v| sorted_data[k] = v.strftime TIME_FORMAT if v.respond_to? :strftime }
+        sorted_data.each { |k,v| sorted_data[k] = v.utc.strftime TIME_FORMAT if v.respond_to? :utc }
       end
 
       def write_redis(type, sha1, serialization)
