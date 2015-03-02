@@ -3,13 +3,14 @@ module Eternity
 
     attr_reader :name, :id, :branches
     
-    def initialize(name)
+    def initialize(name, options={})
       @name = name.to_s
       @id = Eternity.keyspace[:repository][@name]
       @tracker = Tracker.new self
       @current = Restruct::Hash.new redis: Eternity.redis, id: id[:current]
       @branches = Restruct::Hash.new redis: Eternity.redis, id: id[:branches]
       @locker = Locky.new @name, Eternity.locker_adapter
+      @default_branch = options.fetch(:default_branch) { 'master' }.to_s
     end
 
     def [](collection)
@@ -51,7 +52,7 @@ module Eternity
     end
 
     def current_branch
-      current[:branch] || 'master'
+      current[:branch] || @default_branch
     end
 
     def commit(options)

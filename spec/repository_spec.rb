@@ -21,6 +21,10 @@ describe Repository do
     repository.wont_be_empty
   end
 
+  it 'Default branch' do
+    Repository.new(:test, default_branch: 'test').current_branch.must_equal 'test'
+  end
+
   it 'Destroy' do
     repository[:countries].insert 'AR', name: 'Argentina'
     repository.commit author: 'User', message: 'Commit message'
