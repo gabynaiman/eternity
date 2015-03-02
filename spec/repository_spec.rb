@@ -48,7 +48,7 @@ describe Repository do
       repository.commit author: 'User', message: 'Commit message'
       repository[:countries].insert 'UY', name: 'Uruguay'
 
-      repository.to_h.must_equal 'current'  => {'commit' => repository.current_commit.id}, 
+      repository.to_h.must_equal 'current'  => {'commit' => repository.current_commit.id, 'branch' => 'master'}, 
                                  'branches' => {'master' => repository.current_commit.id}, 
                                  'delta'    => {'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}}
     end

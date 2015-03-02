@@ -173,6 +173,7 @@ module Eternity
 
       Commit.create(options).tap do |commit|
         current[:commit] = commit.id
+        current[:branch] = current_branch
         branches[current_branch] = commit.id
         tracker.clear
       end
