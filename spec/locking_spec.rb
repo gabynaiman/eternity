@@ -5,7 +5,7 @@ describe 'Locking' do
   let(:repository) { Repository.new :test }
   
   def lock(repo)
-    Eternity.locker_adapter[repo.name] = :test_process
+    Eternity.locker_storage[repo.name] = :test_process
   end
 
   def assert_locked

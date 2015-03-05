@@ -44,7 +44,7 @@ module Eternity
     attr_reader :changes
 
     def locker
-      Locky.new repository_name, Eternity.locker_adapter
+      Locky.new repository_name, Eternity.locker_storage
     end
 
     def repository_name

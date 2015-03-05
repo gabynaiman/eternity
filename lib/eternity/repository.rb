@@ -9,7 +9,7 @@ module Eternity
       @tracker = Tracker.new self
       @current = Restruct::Hash.new redis: Eternity.redis, id: id[:current]
       @branches = Restruct::Hash.new redis: Eternity.redis, id: id[:branches]
-      @locker = Locky.new @name, Eternity.locker_adapter
+      @locker = Locky.new @name, Eternity.locker_storage
       @default_branch = options.fetch(:default_branch) { 'master' }.to_s
     end
 
