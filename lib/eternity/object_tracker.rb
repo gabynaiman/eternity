@@ -21,7 +21,7 @@ module Eternity
     end
 
     def revert
-      locker.lock :revert do
+      locker.lock! :revert do
         changes.destroy
       end
     end
@@ -35,7 +35,7 @@ module Eternity
     attr_reader :changes
 
     def track(action, data=nil)
-      locker.lock action do
+      locker.lock :track do
         change = {'action' => action}
         change['blob'] = Blob.write(:data, data) if data
 

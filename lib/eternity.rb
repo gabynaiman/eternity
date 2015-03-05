@@ -27,7 +27,7 @@ module Eternity
   attr_config :logger, Logger.new(STDOUT)
 
   def self.locker_adapter
-    @locker_adapter ||= Restruct::Hash.new redis: redis, id: keyspace[:locker]
+    @locker_adapter ||= Restruct::MarshalHash.new redis: redis, id: keyspace[:locker]
   end
 
   def self.redis_keys
