@@ -47,6 +47,7 @@ module Eternity
 
     class Merge
       
+      extend Log
       include Common
 
       def base_delta
@@ -104,11 +105,14 @@ module Eternity
         current_delta[collection][id]['action'] if has_current_changes_for? collection, id
       end
 
+      log :calculate_delta
+
     end
 
 
     class Diff
       
+      extend Log
       include Common
 
       private
@@ -116,6 +120,8 @@ module Eternity
       def calculate_delta
         Delta.merge [Delta.revert(current_delta, base_commit), target_delta]
       end
+
+      log :calculate_delta
 
     end
 
