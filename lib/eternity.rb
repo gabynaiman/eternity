@@ -26,8 +26,9 @@ module Eternity
   attr_config :blob_path, File.join(Dir.home, '.eternity')
   attr_config :logger, Logger.new(STDOUT)
 
-  def self.locker_adapter
-    @locker_adapter ||= Restruct::Hash.new redis: redis, id: keyspace[:locker]
+  def self.locker_storage
+    @locker_storage ||= Restruct::MarshalHash.new redis: Redic.new(redis.url), 
+                                                  id: keyspace[:locker]
   end
 
   def self.redis_keys

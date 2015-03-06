@@ -27,7 +27,7 @@ module Eternity
     end
 
     def revert_all
-      locker.lock :revert_all do
+      locker.lock! :revert_all do
         changes.destroy
       end
     end
@@ -44,7 +44,7 @@ module Eternity
     attr_reader :changes
 
     def locker
-      Locky.new repository_name, Eternity.locker_adapter
+      Locky.new repository_name, Eternity.locker_storage
     end
 
     def repository_name

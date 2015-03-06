@@ -11,7 +11,7 @@ module Eternity
       @tracker = Tracker.new self
       @current = Restruct::Hash.new redis: Eternity.redis, id: id[:current]
       @branches = Restruct::Hash.new redis: Eternity.redis, id: id[:branches]
-      @locker = Locky.new @name, Eternity.locker_adapter
+      @locker = Locky.new @name, Eternity.locker_storage
       @default_branch = options.fetch(:default_branch) { 'master' }.to_s
     end
 
@@ -60,7 +60,7 @@ module Eternity
     def commit(options)
       raise 'Nothing to commit' unless changes?
 
-      locker.lock :commit do
+      locker.lock! :commit do
         commit! message: options.fetch(:message), 
                 author:  options.fetch(:author),
                 time:    options.fetch(:time) { Time.now }
@@ -77,7 +77,7 @@ module Eternity
     def checkout(options)
       raise "Can't checkout with uncommitted changes" if changes?
 
-      locker.lock :checkout do
+      locker.lock! :checkout do
         original_commit = current_commit
 
         commit_id, branch = extract_commit_and_branch options
@@ -133,7 +133,7 @@ module Eternity
     end
 
     def revert
-      locker.lock :revert do
+      locker.lock! :revert do
         Delta.revert(delta, current_commit).tap { tracker.revert }
       end
     end
@@ -184,7 +184,7 @@ module Eternity
     end
 
     def merge!(target_commit)
-      locker.lock :merge do
+      locker.lock! :merge do
         patch = Patch.merge current_commit, target_commit
 
         raise 'Already merged' if patch.merged?
