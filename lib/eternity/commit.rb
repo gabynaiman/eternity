@@ -61,8 +61,8 @@ module Eternity
     end
 
     def fast_forward?(commit)
-      return commit.nil? if first?
-      parent_ids.any? { |id| id == commit.id } || parents.map { |c| c.fast_forward?(commit) }.inject(:|)
+      return true if commit.nil?
+      history_times.key? commit.id
     end
 
     def base_history_at(commit)
