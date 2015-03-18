@@ -27,6 +27,7 @@ describe Repository, 'Commit' do
       current_commit.wont_be :merge?
       current_commit.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
       current_commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina')}
+      current_commit.to_s.must_equal "#{current_commit.time} - #{current_commit.short_id} - #{current_commit.author}: #{current_commit.message}"
     end
   end
 
@@ -42,7 +43,7 @@ describe Repository, 'Commit' do
       current_commit.time.must_be_instance_of Time
       current_commit.author.must_equal 'User'
       current_commit.message.must_equal 'Commit 2'
-      current_commit.parent_ids.must_equal [commit_1.id]
+      current_commit.parents.must_equal [commit_1]
       current_commit.wont_be :first?
       current_commit.wont_be :merge?
       current_commit.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
@@ -50,6 +51,7 @@ describe Repository, 'Commit' do
         'AR' => digest(name: 'Argentina'), 
         'UY' => digest(name: 'Uruguay')
       }
+      current_commit.to_s.must_equal "#{current_commit.time} - #{current_commit.short_id} - #{current_commit.author}: #{current_commit.message}"
     end
   end
 

@@ -24,6 +24,11 @@ module Eternity
         end
       end
 
+      def between(commit_1, commit_2)
+        commits = ([commit_2] + commit_2.history) - ([commit_1] + commit_1.history)
+        merge commits.reverse.map(&:delta)
+      end
+
       def revert(delta, commit)
         commit.with_index do |index|
           delta.each_with_object({}) do |(collection, changes), hash|

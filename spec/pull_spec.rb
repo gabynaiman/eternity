@@ -111,12 +111,8 @@ describe Repository, 'Pull' do
 
     repository.current_commit.tap do |commit|
       commit.must_be :merge?
-      commit.parent_ids.must_equal [commit_4.id, commit_3.id]
+      commit.parents.must_equal [commit_4, commit_3]
       commit.base.id.must_equal commit_1.id
-      commit.base_delta.must_equal 'countries' => {
-        'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}}, 
-        'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
-      }
       commit.delta.must_be_empty
       commit.must_equal_index 'countries' => {
         'AR' => digest(name: 'Argentina'), 
@@ -150,9 +146,8 @@ describe Repository, 'Pull' do
 
     repository.current_commit.tap do |commit|
       commit.must_be :merge?
-      commit.parent_ids.must_equal [commit_3.id, commit_2.id]
+      commit.parents.must_equal [commit_3, commit_2]
       commit.base.id.must_equal commit_1.id
-      commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina 2'}}}
       commit.delta.must_be_empty
       commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina 2')}
     end
@@ -182,9 +177,8 @@ describe Repository, 'Pull' do
 
     repository.current_commit.tap do |commit|
       commit.must_be :merge?
-      commit.parent_ids.must_equal [commit_3.id, commit_2.id]
+      commit.parents.must_equal [commit_3, commit_2]
       commit.base.id.must_equal commit_1.id
-      commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG', 'number' => 54}}}
       commit.delta.must_be_empty
       commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina', code: 'ARG', number: 54)}
     end
@@ -214,9 +208,8 @@ describe Repository, 'Pull' do
     
     repository.current_commit.tap do |commit|
       commit.must_be :merge?
-      commit.parent_ids.must_equal [commit_3.id, commit_2.id]
+      commit.parents.must_equal [commit_3, commit_2]
       commit.base.id.must_equal commit_1.id
-      commit.base_delta.must_equal 'countries' => {'X' => {'action' => 'insert', 'data' => {'name' => 'X1', 'number' => 2, 'code' => 1}}}
       commit.delta.must_be_empty
       commit.must_equal_index 'countries' => {
         'AR' => digest(name: 'Argentina'),
@@ -249,9 +242,8 @@ describe Repository, 'Pull' do
     
     repository.current_commit.tap do |commit|
       commit.must_be :merge?
-      commit.parent_ids.must_equal [commit_3.id, commit_2.id]
+      commit.parents.must_equal [commit_3, commit_2]
       commit.base.id.must_equal commit_1.id
-      commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'delete'}}
       commit.delta.must_be_empty
       commit.must_have_empty_index
     end
@@ -281,9 +273,8 @@ describe Repository, 'Pull' do
 
     repository.current_commit.tap do |commit|
       commit.must_be :merge?
-      commit.parent_ids.must_equal [commit_3.id, commit_2.id]
+      commit.parents.must_equal [commit_3, commit_2]
       commit.base.id.must_equal commit_1.id
-      commit.base_delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
       commit.delta.must_be_empty
       commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina', code: 'ARG')}
     end

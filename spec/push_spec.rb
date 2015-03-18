@@ -66,7 +66,7 @@ describe Repository, 'Push' do
     other_repository.push
 
     Branch[:master].id.must_equal other_repository.current_commit.id
-    Branch[:master].parent_ids.must_equal [commit_2.id, commit_1.id]
+    Branch[:master].parents.must_equal [commit_2, commit_1]
   end
 
 end

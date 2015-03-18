@@ -1,12 +1,12 @@
 require 'minitest_helper'
 
-describe Repository, 'Pull' do
+describe 'Delta' do
 
   let(:repo_1) { Repository.new :test_1 }
   let(:repo_2) { Repository.new :test_2 }
   let(:repo_3) { Repository.new :test_3 }
 
-  it 'test' do
+  it 'Merge and Checkout' do
     repo_1[:countries].insert 'AR', name: 'Argentina'
     commit_1 = repo_1.commit author: 'User 1', message: 'Commit 1'
     repo_1.push
@@ -104,6 +104,115 @@ describe Repository, 'Pull' do
       'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 54, 'capital' => 'CABA'}},
       'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}},
       'PY' => {'action' => 'insert', 'data' => {'name' => 'Paraguay'}}
+    }
+  end
+
+  it 'Commit -> Pull -> Push (multiple times)' do
+    repo_1[:countries].insert 'AR', name: 'Argentina'
+    repo_1.commit author: 'User 1', message: 'Added Argentina'
+    repo_1.push
+
+    delta = repo_2.pull
+    delta.must_equal 'countries' => {
+      'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
+    }
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina')
+    }
+
+    repo_2[:countries].insert 'BR', name: 'Brasil'
+    repo_2.commit author: 'User 2', message: 'Added Brasil'
+    
+    delta = repo_2.pull
+    delta.must_be_empty
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+      'BR' => digest(name: 'Brasil')
+    }
+
+    repo_2.push
+
+    repo_1[:countries].insert 'UY', name: 'Uruguay'
+    repo_1.commit author: 'User 1', message: 'Added Uruguay'
+    
+    delta = repo_1.pull
+    delta.must_equal 'countries' => {
+      'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}}
+    }
+    
+    repo_1.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+      'BR' => digest(name: 'Brasil'),
+      'UY' => digest(name: 'Uruguay')
+    }
+
+    repo_1.push
+
+    repo_2[:countries].insert 'CL', name: 'Chile'
+    repo_2.commit author: 'User 2', message: 'Added Chile'
+    
+    delta = repo_2.pull
+    delta.must_equal 'countries' => {
+      'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
+    }
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+      'BR' => digest(name: 'Brasil'),
+      'UY' => digest(name: 'Uruguay'),
+      'CL' => digest(name: 'Chile')
+    }
+
+    repo_2.push
+
+    repo_1[:countries].update 'UY', name: 'Republica Oriental del Uruguay'
+    repo_1.commit author: 'User 1', message: 'Updated Uruguay'
+    
+    delta = repo_1.pull
+    delta.must_equal 'countries' => {
+      'CL' => {'action' => 'insert', 'data' => {'name' => 'Chile'}}
+    }
+
+    repo_1.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+      'BR' => digest(name: 'Brasil'),
+      'UY' => digest(name: 'Republica Oriental del Uruguay'),
+      'CL' => digest(name: 'Chile')
+    }
+
+    repo_1.push
+
+    repo_2[:countries].delete 'CL'
+    repo_2.commit author: 'User 2', message: 'Deleted Chile'
+    
+    delta = repo_2.pull
+    delta.must_equal 'countries' => {
+      'UY' => {'action' => 'update', 'data' => {'name' => 'Republica Oriental del Uruguay'}}
+    }
+    
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+      'BR' => digest(name: 'Brasil'),
+      'UY' => digest(name: 'Republica Oriental del Uruguay')
+    }
+
+    repo_2.push
+
+    repo_1[:countries].insert 'CO', name: 'Colombia'
+    repo_1.commit author: 'User 1', message: 'Added Colombia'
+    
+    delta = repo_1.pull
+    delta.must_equal 'countries' => {
+      'CL' => {'action' => 'delete'}
+    }
+
+    repo_1.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+      'BR' => digest(name: 'Brasil'),
+      'UY' => digest(name: 'Republica Oriental del Uruguay'),
+      'CO' => digest(name: 'Colombia')
     }
   end
 

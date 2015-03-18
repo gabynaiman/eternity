@@ -26,22 +26,6 @@ module Eternity
         @delta ||= TransparentProxy.new { calculate_delta }
       end
 
-      private
-
-      def current_delta
-        @current_delta ||= base_delta_of current_commit, base_commit
-      end
-
-      def target_delta
-        @target_delta ||= base_delta_of target_commit, base_commit
-      end
-
-      def base_delta_of(commit, base)
-        return {} if commit == base
-        history = [commit] + commit.base_history_at(base)[0..-2]
-        Delta.merge history.reverse.map(&:base_delta)
-      end
-
     end
 
 
@@ -61,6 +45,14 @@ module Eternity
       end
 
       private
+
+      def current_delta
+        @current_delta ||= Delta.between target_commit, current_commit
+      end
+
+      def target_delta
+        @target_delta ||= Delta.between current_commit, target_commit
+      end
 
       def calculate_delta
         return {} if merged?
@@ -106,7 +98,6 @@ module Eternity
       end
 
       log :calculate_delta
-
     end
 
 
@@ -117,12 +108,38 @@ module Eternity
 
       private
 
+      def current_delta
+        @current_delta ||= Delta.between base_commit, current_commit
+      end
+
+      def target_delta
+        @target_delta ||= Delta.between base_commit, target_commit
+      end
+
+      def diff_delta
+        @diff_delta ||= Delta.merge [Delta.revert(current_delta, base_commit), target_delta]
+      end
+
       def calculate_delta
-        Delta.merge [Delta.revert(current_delta, base_commit), target_delta]
+        target_commit.with_index do |target_index|
+          diff_delta.each_with_object({}) do |(collection, elements), hash|
+            hash[collection] = {}
+
+            elements.each do |id, change|
+              if change['data']
+                sha1 = Blob.digest(Blob.serialize(change['data']))
+                change['data'] = target_index[collection][id].data if target_index[collection].include?(id) && sha1 != target_index[collection][id].sha1
+              end
+
+              hash[collection][id] = change if change
+            end
+
+            hash.delete collection if hash[collection].empty?
+          end
+        end
       end
 
       log :calculate_delta
-
     end
 
   end

@@ -12,7 +12,7 @@ module Eternity
     end
 
     def time
-      Time.parse(data['time']) if data['time']
+      Time.parse data['time'] if data['time']
     end
 
     def author
@@ -46,10 +46,6 @@ module Eternity
       Commit.new data['base']
     end
 
-    def base_delta
-      data['base_delta'] ? Blob.read(:delta, data['base_delta']) : {}
-    end
-
     def history_times
       data['history_times'] ? Blob.read(:history_times, data['history_times']) : {}
     end
@@ -63,14 +59,6 @@ module Eternity
     def fast_forward?(commit)
       return true if commit.nil?
       history_times.key? commit.id
-    end
-
-    def base_history_at(commit)
-      return [] unless commit
-      history = [base]
-      history += base.base_history_at commit unless base.id == commit.id
-      raise "History not include commit #{commit.id}" unless history.map(&:id).include? commit.id
-      history
     end
 
     def first?
@@ -91,6 +79,14 @@ module Eternity
     end
     alias_method :eql?, :==
 
+    def hash
+      id.hash
+    end
+
+    def to_s
+      "#{time} - #{short_id} - #{author}: #{message}"
+    end
+
     def self.create(options)
       raise 'Author must be present' if options[:author].to_s.strip.empty?
       raise 'Message must be present' if options[:message].to_s.strip.empty?
@@ -109,7 +105,6 @@ module Eternity
         index:         options.fetch(:index),
         delta:         options.fetch(:delta),
         base:          options[:parents].count == 2 ? options.fetch(:base) : options[:parents].first,
-        base_delta:    options[:parents].count == 2 ? options.fetch(:base_delta) : options.fetch(:delta),
         history_times: Blob.write(:history_times, history_times)
       }
 

@@ -20,6 +20,14 @@ Eternity.configure do |config|
   config.logger.level = Logger::ERROR
 end
 
+class Time
+  @last = Time.now
+
+  def self.now
+    @last += 1
+  end
+end
+
 class Minitest::Spec
   def redis
     Eternity.redis
