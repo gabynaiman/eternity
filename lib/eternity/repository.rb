@@ -189,7 +189,7 @@ module Eternity
 
         raise 'Already merged' if patch.merged?
 
-        commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id}",
+        commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id} (#{name})",
                 author:     'System',
                 parents:    [current_commit.id, target_commit.id],
                 index:      write_index(patch.delta),
