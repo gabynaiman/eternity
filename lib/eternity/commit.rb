@@ -51,14 +51,22 @@ module Eternity
         Blob.read :history, data['history']
       else
         # Backward compatibility
-        if parent_ids.count == 2
-          current_history_ids = [parent_ids[0]] + Commit.new(parent_ids[0]).history_ids
-          target_history_ids = [parent_ids[1]] + Commit.new(parent_ids[1]).history_ids
-          current_history_ids - target_history_ids + target_history_ids
-        else
-          parent_id = parent_ids[0]
-          parent_id ? [parent_id] + Commit.new(parent_id).history_ids : []
-        end
+        cache_key = Eternity.keyspace[:cache][:history][id]
+        return Eternity.redis.call 'LRANGE', cache_key, 0, -1 if Eternity.redis.call('EXISTS', cache_key) == 1
+
+        commit_ids =
+          if parent_ids.count == 2
+            current_history_ids = [parent_ids[0]] + Commit.new(parent_ids[0]).history_ids
+            target_history_ids = [parent_ids[1]] + Commit.new(parent_ids[1]).history_ids
+            current_history_ids - target_history_ids + target_history_ids
+          else
+            parent_id = parent_ids[0]
+            parent_id ? [parent_id] + Commit.new(parent_id).history_ids : []
+          end
+
+        Eternity.redis.call 'RPUSH', cache_key, *commit_ids
+
+        commit_ids
       end
     end
 
