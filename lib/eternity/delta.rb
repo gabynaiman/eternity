@@ -21,17 +21,15 @@ module Eternity
             base_data = base_index[collection].include?(id) ? base_index[collection][id].data : {}
             changes.each do |change|
               current_change = change
-              if hash[collection].key? id
-                if hash[collection][id].nil? && change['action'] == DELETE
-                  current_change = nil
-                else
-                  current_change = TrackFlatter.flatten [hash[collection][id], change]
-                  if current_change && [INSERT, UPDATE].include?(current_change['action'])
-                    current_change['data'] = ConflictResolver.resolve hash[collection][id]['data'] || base_data,
-                                                                      change['data'],
-                                                                      base_data
-                  end
+              if hash[collection][id]
+                current_change = TrackFlatter.flatten [hash[collection][id], change]
+                if current_change && [INSERT, UPDATE].include?(current_change['action'])
+                  current_change['data'] = ConflictResolver.resolve hash[collection][id]['data'] || base_data,
+                                                                    change['data'],
+                                                                    base_data
                 end
+              elsif hash[collection].key?(id) && change['action'] == DELETE
+                current_change = nil
               end
               hash[collection][id] = current_change
             end
