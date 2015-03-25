@@ -132,7 +132,7 @@ describe Repository, 'Pull' do
 
     delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina 1'}}}
 
-    other_repository[:countries].update 'AR', name: 'Argentina 2'
+    other_repository[:countries].update 'AR', name: 'Argentina 2', number: 54
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
     other_repository.push
 
@@ -140,7 +140,7 @@ describe Repository, 'Pull' do
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
     delta = repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina 2'}}}
+    delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina 3', 'number' => 54}}}
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
@@ -149,7 +149,7 @@ describe Repository, 'Pull' do
       commit.parents.must_equal [commit_3, commit_2]
       commit.base.id.must_equal commit_1.id
       commit.delta.must_be_empty
-      commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina 2')}
+      commit.must_equal_index 'countries' => {'AR' => digest(name: 'Argentina 3', number: 54)}
     end
   end
 
@@ -202,7 +202,7 @@ describe Repository, 'Pull' do
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
     delta = repository.pull
 
-    delta.must_equal 'countries' => {'X' => {'action' => 'update', 'data' => {'name' => 'X1', 'number' => 2, 'code' => 1}}}
+    delta.must_equal 'countries' => {'X' => {'action' => 'update', 'data' => {'name' => 'X2', 'number' => 2, 'code' => 1}}}
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
     
@@ -213,7 +213,7 @@ describe Repository, 'Pull' do
       commit.delta.must_be_empty
       commit.must_equal_index 'countries' => {
         'AR' => digest(name: 'Argentina'),
-        'X'  => digest(name: 'X1', 'number' => 2, 'code' => 1)
+        'X'  => digest(name: 'X2', 'number' => 2, 'code' => 1)
       }
     end
   end
@@ -234,6 +234,7 @@ describe Repository, 'Pull' do
 
     repository[:countries].delete 'AR'
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
+
     delta = repository.pull
 
     delta.must_be_empty
@@ -259,15 +260,16 @@ describe Repository, 'Pull' do
 
     delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
 
-    other_repository[:countries].update 'AR', name: 'Argentina', code: 'ARG'
+    other_repository[:countries].delete 'AR'
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
     other_repository.push
 
-    repository[:countries].delete 'AR'
+    repository[:countries].update 'AR', name: 'Argentina', code: 'ARG'
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
+    
     delta = repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}}}
+    delta.must_be_empty
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 

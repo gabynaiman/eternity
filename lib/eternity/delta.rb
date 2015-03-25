@@ -14,33 +14,44 @@ module Eternity
         end
       end
 
-      def merge(deltas)
+      def merge(deltas, base_index)
         union(deltas).each_with_object({}) do |(collection, elements), hash|
           hash[collection] = {}
           elements.each do |id, changes|
-            change = TrackFlatter.flatten changes
-            hash[collection][id] = TrackFlatter.flatten changes if change
-          end
-        end
-      end
-
-      def between(commit_1, commit_2)
-        commits = ([commit_2] + commit_2.history) - ([commit_1] + commit_1.history)
-        merge commits.reverse.map(&:delta)
-      end
-
-      def revert(delta, commit)
-        commit.with_index do |index|
-          delta.each_with_object({}) do |(collection, changes), hash|
-            hash[collection] = {}
-            changes.each do |id, change|
-              hash[collection][id] = 
-                case change['action']
-                  when INSERT then {'action' => DELETE}
-                  when UPDATE then {'action' => UPDATE, 'data' => index[collection][id].data}
-                  when DELETE then {'action' => INSERT, 'data' => index[collection][id].data}
+            base_data = base_index[collection].include?(id) ? base_index[collection][id].data : {}
+            changes.each do |change|
+              if hash[collection].key? id
+                if hash[collection][id].nil? && change['action'] == DELETE
+                  flatten_change = nil
+                else
+                  flatten_change = TrackFlatter.flatten [hash[collection][id], change]
+                  if flatten_change && [INSERT, UPDATE].include?(flatten_change['action'])
+                    flatten_change['data'] = ConflictResolver.resolve hash[collection][id]['data'] || base_data,
+                                                                      change['data'],
+                                                                      base_data
+                  end
                 end
+                hash[collection][id] = flatten_change
+              else
+                hash[collection][id] = change
+              end
             end
+            hash[collection].delete id unless hash[collection][id]
+          end
+          hash.delete collection if hash[collection].empty?
+        end        
+      end
+
+      def revert(delta, index)
+        delta.each_with_object({}) do |(collection, changes), hash|
+          hash[collection] = {}
+          changes.each do |id, change|
+            hash[collection][id] = 
+              case change['action']
+                when INSERT then {'action' => DELETE}
+                when UPDATE then {'action' => UPDATE, 'data' => index[collection][id].data}
+                when DELETE then {'action' => INSERT, 'data' => index[collection][id].data}
+              end
           end
         end
       end

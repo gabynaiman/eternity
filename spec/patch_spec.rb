@@ -8,9 +8,9 @@ describe Patch do
   let(:commits) { Hash.new }
 
   before do
-    # Repo 1: X---(1)---(2)---(3)---(4)---(5)---(8)---(9)---(12)---(13)---(14)
-    # Repo 2:  \                 \--(6)---(7)--/           /
-    # Repo 3:   \----------(10)-----------------(11)------/
+    # REPO 1: (*)---(1)---(2)---(3)---(4)---(5)---(8)---(9)---(12)---(13)---(14)
+    # REPO 2:    \                 \--(6)---(7)--/           /
+    # REPO 3:     \----------(10)-----------------(11)------/
 
     repo_1[:countries].insert 'AR', name: 'Argentina'
     commit repo_1, 1
@@ -74,7 +74,6 @@ describe Patch do
 
       patch.delta.must_be_empty
       patch.base_commit.must_equal commits[4]
-      patch.base_delta.must_be_empty
     end
 
     it 'Diff' do
@@ -95,10 +94,6 @@ describe Patch do
         'CO' => {'action' => 'insert', 'data' => {'name' => 'Colombia', 'number' => 57}}
       }
       patch.base_commit.must_be_nil
-      patch.base_delta.must_equal 'countries' => {
-        'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}},
-        'CO' => {'action' => 'insert', 'data' => {'name' => 'Colombia', 'number' => 57}}
-      }
     end
 
     it 'Diff' do
@@ -120,7 +115,6 @@ describe Patch do
 
       patch.delta.must_be_empty
       patch.base_commit.must_equal commits[1]
-      patch.base_delta.must_be_empty
     end
 
     it 'Diff' do
@@ -142,7 +136,6 @@ describe Patch do
 
       patch.delta.must_be_empty
       patch.base_commit.must_equal commits[2]
-      patch.base_delta.must_be_empty
     end
 
     it 'Diff' do
@@ -167,11 +160,6 @@ describe Patch do
         'CL' => {'action' => 'insert', 'data' => {'name' => 'Chile'}}
       }
       patch.base_commit.must_equal commits[3]
-      patch.base_delta.must_equal 'countries' => {
-        'UY' => {'action' => 'update', 'data' => {'name' => 'Republica Oriental del Uruguay'}},
-        'AR' => {'action' => 'update', 'data' => {'name' => 'Republica Argentina', 'number' => 54}},
-        'CL' => {'action' => 'insert', 'data' => {'name' => 'Chile'}},
-      }
     end
 
     it 'Diff' do
@@ -194,7 +182,6 @@ describe Patch do
 
       patch.delta.must_be_empty
       patch.base_commit.must_equal commits[3]
-      patch.base_delta.must_be_empty
     end
 
     it 'Diff' do

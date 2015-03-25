@@ -62,8 +62,7 @@ module Eternity
 
       locker.lock! :commit do
         commit! message: options.fetch(:message), 
-                author:  options.fetch(:author),
-                time:    options.fetch(:time) { Time.now }
+                author:  options.fetch(:author)
       end
     end
 
@@ -134,7 +133,9 @@ module Eternity
 
     def revert
       locker.lock! :revert do
-        Delta.revert(delta, current_commit).tap { tracker.revert }
+        current_commit.with_index do |index|
+          Delta.revert(delta, index).tap { tracker.revert }
+        end
       end
     end
 
@@ -189,12 +190,11 @@ module Eternity
 
         raise 'Already merged' if patch.merged?
 
-        commit! message:    "Merge #{target_commit.short_id} into #{current_commit.short_id} (#{name})",
-                author:     'System',
-                parents:    [current_commit.id, target_commit.id],
-                index:      write_index(patch.delta),
-                base:       patch.base_commit.id,
-                base_delta: Blob.write(:delta, patch.base_delta)
+        commit! message: "Merge #{target_commit.short_id} into #{current_commit.short_id} (#{name})",
+                author:  'System',
+                parents: [current_commit.id, target_commit.id],
+                index:   write_index(patch.delta),
+                base:    patch.base_commit.id
 
         patch.delta
       end

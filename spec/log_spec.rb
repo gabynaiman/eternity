@@ -29,21 +29,20 @@ describe Repository, 'Log' do
   end
 
   it 'Merge' do
-    time = Time.now
     repository[:countries].insert 'AR', name: 'Argentina'
-    commit_1 = repository.commit author: 'User', message: 'Commit 1', time: time
+    commit_1 = repository.commit author: 'User', message: 'Commit 1'
     repository.push
     
     other_repository = Repository.new :other
     other_repository.pull
     
     other_repository[:countries].insert 'UY', name: 'Uruguay'
-    commit_2 = other_repository.commit author: 'User', message: 'Commit 2', time: time + 1
+    commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
 
     other_repository.push
 
     repository[:countries].insert 'BR', name: 'Brasil'
-    commit_3 = repository.commit author: 'User', message: 'Commit 3', time: time + 2
+    commit_3 = repository.commit author: 'User', message: 'Commit 3'
 
     repository.pull
 

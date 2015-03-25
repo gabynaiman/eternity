@@ -7,6 +7,14 @@ describe 'Delta' do
   let(:repo_3) { Repository.new :test_3 }
 
   it 'Merge and Checkout' do
+    #               P           P         P
+    # REPO 1: (*)--(1)---(4)---(5)  (6)--(8)       (10)
+    #               \           \   /     \        / \
+    # REPO 2:        -(2)--(3)---(6)--(7)--(9)--(10) \
+    #                \            MP        M    P   \
+    # REPO 3:         ------(11)                    (10)  
+    #
+
     repo_1[:countries].insert 'AR', name: 'Argentina'
     commit_1 = repo_1.commit author: 'User 1', message: 'Commit 1'
     repo_1.push
@@ -17,10 +25,10 @@ describe 'Delta' do
     repo_2[:countries].insert 'BR', name: 'Brasil'
     commit_2 = repo_2.commit author: 'User 2', message: 'Commit 2'
 
-    repo_2[:countries].update 'AR', name: 'Argentina', code: 54, capital: '...'
+    repo_2[:countries].update 'AR', name: 'Argentina', number: 54, capital: 'CABA'
     commit_3 = repo_2.commit author: 'User 2', message: 'Commit 3'
 
-    repo_1[:countries].update 'AR', name: 'Argentina', capital: 'CABA'
+    repo_1[:countries].update 'AR', name: 'Argentina', capital: '...', code: 'ARG'
     commit_4 = repo_1.commit author: 'User 1', message: 'Commit 4'
 
     repo_1[:countries].insert 'CL', name: 'Chile'
@@ -32,12 +40,12 @@ describe 'Delta' do
     commit_6 = repo_2.current_commit # Merge
 
     delta.must_equal 'countries' => {
-      'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 54, 'capital' => 'CABA'}},
+      'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'number' => 54, 'code' => 'ARG', 'capital' => 'CABA'}},
       'CL' => {'action' => 'insert', 'data' => {'name' => 'Chile'}}
     }
 
     commit_6.must_equal_index 'countries' => {
-      'AR' => digest(name: 'Argentina', code: 54, capital: 'CABA'),
+      'AR' => digest(name: 'Argentina', number: 54, code: 'ARG', capital: 'CABA'),
       'BR' => digest(name: 'Brasil'),
       'CL' => digest(name: 'Chile')
     }
@@ -49,9 +57,8 @@ describe 'Delta' do
     repo_1.current_commit.must_equal commit_6
 
     delta.must_equal 'countries' => {
-      'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 54, 'capital' => 'CABA'}},
-      'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}},
-      'CL' => {'action' => 'update', 'data' => {'name' => 'Chile'}}
+      'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'number' => 54, 'code' => 'ARG', 'capital' => 'CABA'}},
+      'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}}
     }
 
     repo_2[:countries].delete 'CL'
@@ -71,7 +78,7 @@ describe 'Delta' do
     }
 
     commit_9.must_equal_index 'countries' => {
-      'AR' => digest(name: 'Argentina', code: 54, capital: 'CABA'),
+      'AR' => digest(name: 'Argentina', number: 54, code: 'ARG', capital: 'CABA'),
       'BR' => digest(name: 'Brasil'),
       'PY' => digest(name: 'Paraguay'),
       'CO' => digest(name: 'Colombia')
@@ -101,13 +108,19 @@ describe 'Delta' do
 
     delta.must_equal 'countries' => {
       'UY' => {'action' => 'delete'},
-      'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 54, 'capital' => 'CABA'}},
+      'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'number' => 54, 'code' => 'ARG', 'capital' => 'CABA'}},
       'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}},
       'PY' => {'action' => 'insert', 'data' => {'name' => 'Paraguay'}}
     }
   end
 
   it 'Commit -> Pull -> Push (multiple times)' do
+    #               P         MP        MP         M
+    # REPO 1: (*)--(1)--(3)--(4)--(7)--(8)--(11)--(12)
+    #               \      /     \   /     \    /
+    # REPO 2:        ---(2)--(5)--(6)--(9)--(10)
+    #                    P         MP        MP
+
     repo_1[:countries].insert 'AR', name: 'Argentina'
     repo_1.commit author: 'User 1', message: 'Added Argentina'
     repo_1.push
