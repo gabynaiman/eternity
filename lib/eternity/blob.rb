@@ -41,8 +41,15 @@ module Eternity
       end
 
       def normalize(data)
-        sorted_data = Hash[data.sort_by { |k,v| k.to_s }]
-        sorted_data.each { |k,v| sorted_data[k] = v.utc.strftime TIME_FORMAT if v.respond_to? :utc }
+        case data
+          when Hash
+            sorted_data = Hash[data.sort_by { |k,v| k.to_s }]
+            sorted_data.each { |k,v| sorted_data[k] = v.utc.strftime TIME_FORMAT if v.respond_to? :utc }
+          when Array
+            data.map { |d| normalize d }
+          else
+            data
+        end
       end
 
       def clear_cache
