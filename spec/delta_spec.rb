@@ -6,7 +6,7 @@ describe 'Delta' do
   let(:repo_2) { Repository.new :test_2 }
   let(:repo_3) { Repository.new :test_3 }
 
-  it 'Merge and Checkout' do
+  it 'Merge -> Checkout (2 times)' do
     #               P           P         P
     # REPO 1: (*)--(1)---(4)---(5)  (6)--(8)       (10)
     #               \           \   /     \        / \
@@ -227,6 +227,90 @@ describe 'Delta' do
       'UY' => digest(name: 'Republica Oriental del Uruguay'),
       'CO' => digest(name: 'Colombia')
     }
+  end
+
+  it 'Merge -> Merge -> Checkout' do
+    #               P             MP   P
+    # REPO 1: (*)--(1)--(2)------(6)--(7)
+    #                \       MP /       \
+    # REPO 2:         --(3)--(5)         (7)
+    #                 \     /
+    # REPO 3:          -(4)-
+    #                    P
+
+    repo_1[:countries].insert 'AR', name: 'Argentina'
+    repo_1.commit author: 'User 1', message: 'Commit 1'
+    repo_1.push
+
+    delta = repo_2.pull
+    delta.must_equal 'countries' => {
+      'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
+    }
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+    }
+
+    delta = repo_3.pull
+    delta.must_equal 'countries' => {
+      'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
+    }
+
+    repo_3.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+    }
+
+    repo_1[:countries].insert 'BR', name: 'Brasil'
+    repo_1.commit author: 'User 1', message: 'Commit 2'
+
+    repo_2[:countries].update 'AR', name: 'Argentina', number: 54
+    repo_2.commit author: 'User 2', message: 'Commit 3'
+
+    repo_3[:countries].insert 'UY', name: 'Uruguay'
+    repo_3.commit author: 'User 3', message: 'Commit 4'
+    repo_3.push
+
+    delta = repo_2.pull
+    delta.must_equal 'countries' => {
+      'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
+    }
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina', number: 54),
+      'UY' => digest(name: 'Uruguay')
+    }
+
+    repo_2.push
+
+    delta = repo_1.pull
+    delta.must_equal 'countries' => {
+      'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'number' => 54}},
+      'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
+    }
+
+    repo_1.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina', number: 54),
+      'BR' => digest(name: 'Brasil'),
+      'UY' => digest(name: 'Uruguay')
+    }
+
+    repo_1.push
+
+    repo_1[:countries].delete 'UY'
+    repo_1.commit author: 'User 1', message: 'Commit 7'
+    repo_1.push
+
+    delta = repo_2.pull
+    delta.must_equal 'countries' => {
+      'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}},
+      'UY' => {'action' => 'delete'}
+    }
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina', number: 54),
+      'BR' => digest(name: 'Brasil')
+    }
+
   end
 
 end
