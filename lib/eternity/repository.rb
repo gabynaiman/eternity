@@ -75,6 +75,8 @@ module Eternity
       raise "Can't checkout with uncommitted changes" if changes?
 
       locker.lock! :checkout do
+        Eternity.logger.info(self.class) { "Checkout #{name} (#{options.map { |k,v| "#{k}: #{v}" }.join(', ')})" }
+        
         original_commit = current_commit
 
         commit_id, branch = extract_commit_and_branch options
@@ -111,6 +113,9 @@ module Eternity
 
     def push!
       raise "Can't push without commit" unless current_commit?
+
+      Eternity.logger.info(self.class) { "Push #{name} (#{current_commit.id})" }
+
       Branch[current_branch] = current_commit.id
     end
 
@@ -119,6 +124,8 @@ module Eternity
       raise "Branch not found: #{current_branch}" unless Branch.exists? current_branch
 
       target_commit = Branch[current_branch]
+
+      Eternity.logger.info(self.class) { "Pull #{name} (#{target_commit.id})" }
 
       if current_commit == target_commit || current_commit.fast_forward?(target_commit)
         {}
@@ -131,6 +138,8 @@ module Eternity
 
     def revert
       locker.lock! :revert do
+        Eternity.logger.info(self.class) { "Revert #{name}" }
+
         current_commit.with_index do |index|
           Delta.revert(delta, index).tap { tracker.revert }
         end
@@ -167,6 +176,8 @@ module Eternity
     attr_reader :tracker, :current, :locker
 
     def commit!(options)
+      Eternity.logger.info(self.class) { "Commit #{name} (author: #{options[:author]}, message: #{options[:message]})" }
+
       changes = delta
       options[:parents] ||= [current_commit.id]
       options[:delta]   ||= write_delta changes
@@ -182,6 +193,8 @@ module Eternity
 
     def merge!(target_commit)
       locker.lock! :merge do
+        Eternity.logger.info(self.class) { "Merge #{name} (#{target_commit.short_id} into #{current_commit.short_id})" }
+
         patch = Patch.merge current_commit, target_commit
 
         raise 'Already merged' if patch.merged?
