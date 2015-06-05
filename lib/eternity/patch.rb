@@ -74,7 +74,7 @@ module Eternity
 
 
     class Merge
-      extend Log
+      
       include Common
 
       def merged?
@@ -95,12 +95,11 @@ module Eternity
         Delta.merge [revert_delta, target_delta, remaining_delta], base_index
       end
 
-      log :calculate_delta
     end
 
 
     class Diff
-      extend Log
+
       include Common
 
       private
@@ -109,7 +108,6 @@ module Eternity
         Delta.merge [revert_delta, target_delta], base_index
       end
 
-      log :calculate_delta
     end
 
   end

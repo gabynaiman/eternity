@@ -1,8 +1,6 @@
 module Eternity
   class Repository
 
-    extend Log
-
     attr_reader :name, :id, :branches
     
     def initialize(name, options={})
@@ -163,8 +161,6 @@ module Eternity
       branches.merge! dump['branches']
       self.delta = dump['delta']
     end
-
-    [:delta, :delta=, :commit, :pull, :push, :checkout, :merge, :revert, :destroy, :dump].each { |m| log m }
 
     private
 

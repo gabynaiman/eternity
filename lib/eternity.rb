@@ -48,7 +48,6 @@ module Eternity
 end
 
 require_relative 'eternity/version'
-require_relative 'eternity/log'
 require_relative 'eternity/blob'
 require_relative 'eternity/repository'
 require_relative 'eternity/object_tracker'
