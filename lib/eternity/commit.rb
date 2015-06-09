@@ -51,7 +51,7 @@ module Eternity
         Blob.read :history, data['history']
       else
         # Backward compatibility
-        cache_key = Eternity.keyspace[:cache][:history][id]
+        cache_key = self.class.history_cache_key[id]
         return Eternity.redis.call 'LRANGE', cache_key, 0, -1 if Eternity.redis.call('EXISTS', cache_key) == 1
 
         commit_ids =
@@ -157,6 +157,16 @@ module Eternity
       true
     rescue
       false
+    end
+
+    def self.history_cache_key
+      Eternity.keyspace[:cache][:history]
+    end
+
+    def self.clear_history_cache
+      Eternity.redis.call('KEYS', history_cache_key['*']).each_slice(1000) do |keys|
+        Eternity.redis.call 'DEL', *keys
+      end
     end
 
     private

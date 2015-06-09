@@ -72,6 +72,18 @@ describe Repository, 'Commit' do
     error.message.must_equal 'Message must be present'
   end
 
+  it 'Clear history cache' do
+    3.times do
+      redis.call 'RPUSH', Commit.history_cache_key[SecureRandom.uuid], SecureRandom.uuid
+    end
+
+    redis.call('KEYS', Commit.history_cache_key['*']).count.must_equal 3
+
+    Commit.clear_history_cache
+
+    redis.call('KEYS', Commit.history_cache_key['*']).count.must_equal 0
+  end
+
   describe 'With index' do
 
     def assert_transeint_index
@@ -102,5 +114,5 @@ describe Repository, 'Commit' do
     end
 
   end
-  
+
 end
