@@ -30,14 +30,14 @@ describe Blob do
   it 'Write in redis and file system' do
     sha1 = Blob.write :xyz, data
 
-    redis_data = redis.call 'GET', key
+    redis_data = connection.call 'GET', key
     file_data = wait_and_read_file filename
 
     [redis_data, decode(file_data)].each { |d| MessagePack.unpack(d).must_equal data }
   end
 
   it 'Read from redis' do
-    redis.call 'SET', key, serialization
+    connection.call 'SET', key, serialization
     
     refute File.exists?(filename)
     Blob.read(:xyz, sha1).must_equal data
@@ -47,7 +47,7 @@ describe Blob do
     FileUtils.mkpath File.dirname(filename)
     File.write filename, encode(serialization)
 
-    redis.call('GET', key).must_be_nil
+    connection.call('GET', key).must_be_nil
     Blob.read(:xyz, sha1).must_equal data
   end
 

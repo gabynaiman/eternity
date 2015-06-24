@@ -4,20 +4,23 @@ describe 'Locking' do
 
   let(:repository) { Repository.new :test }
   
-  def lock(repo)
-    Eternity.locker_storage[repo.name] = :test_process
+  def with_locked(repository, key=:test_process)
+    locker = Eternity.locker_for repository.name
+    locker.lock key do
+      yield
+    end
   end
 
   def assert_locked
-    error = proc { yield }.must_raise Locky::Error
-    error.message.must_equal 'test already locked by test_process'
+    proc { yield }.must_raise Restruct::LockerError
   end
 
   it 'Commit' do
     repository[:countries].insert 'AR', name: 'Argentina'
-    lock repository
-    
-    assert_locked { repository.commit author: 'User', message: 'Commit Message' }
+
+    with_locked repository, :commit do
+      assert_locked { repository.commit author: 'User', message: 'Commit Message' }
+    end
 
     repository.current_commit.must_be_nil
     repository.changes_count.must_equal 1
@@ -30,9 +33,9 @@ describe 'Locking' do
     repository[:countries].insert 'UY', name: 'Uruguay'
     commit_2 = repository.commit author: 'User', message: 'Commit 2'
 
-    lock repository
-
-    assert_locked { repository.checkout commit: commit_1.id }
+    with_locked repository, :checkout do
+      assert_locked { repository.checkout commit: commit_1.id }
+    end
 
     repository.current_commit.must_equal commit_2
   end
@@ -46,9 +49,9 @@ describe 'Locking' do
 
     repository.checkout commit: commit_1.id
 
-    lock repository
-
-    assert_locked { repository.merge commit: commit_2.id }
+    with_locked repository, :merge do
+      assert_locked { repository.merge commit: commit_2.id }
+    end
 
     repository.current_commit.must_equal commit_1
   end
@@ -58,9 +61,9 @@ describe 'Locking' do
     repository[:countries].insert 'UY', name: 'Uruguay'
     repository[:cities].insert 'CABA', name: 'Ciudad Autonoma de Buenos Aires'
 
-    lock repository
-
-    assert_locked { repository.revert }
+    with_locked repository, :revert_all do
+      assert_locked { repository.revert }
+    end
 
     repository.changes_count.must_equal 3
     repository[:countries].count.must_equal 2
@@ -72,9 +75,9 @@ describe 'Locking' do
     repository[:countries].insert 'UY', name: 'Uruguay'
     repository[:cities].insert 'CABA', name: 'Ciudad Autonoma de Buenos Aires'
 
-    lock repository
-
-    assert_locked { repository[:countries].revert_all }
+    with_locked repository, :revert do
+      assert_locked { repository[:countries].revert_all }
+    end
 
     repository.changes_count.must_equal 3
     repository[:countries].count.must_equal 2
@@ -82,19 +85,19 @@ describe 'Locking' do
   end
 
   it 'Insert' do
-    lock repository
-
-    assert_locked { repository[:countries].insert 'AR', name: 'Argentina' }
+    with_locked repository do
+      assert_locked { repository[:countries].insert 'AR', name: 'Argentina' }
+    end
 
     repository.changes_count.must_equal 0
   end
 
   it 'Update' do
     repository[:countries].insert 'AR', name: 'Argentina'
-
-    lock repository
-
-    assert_locked { repository[:countries].update 'AR', name: 'Republica Argentina' }
+    
+    with_locked repository do
+      assert_locked { repository[:countries].update 'AR', name: 'Republica Argentina' }
+    end
 
     repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
   end
@@ -102,9 +105,9 @@ describe 'Locking' do
   it 'Delete' do
     repository[:countries].insert 'AR', name: 'Argentina'
 
-    lock repository
-
-    assert_locked { repository[:countries].delete 'AR' }
+    with_locked repository do
+      assert_locked { repository[:countries].delete 'AR' }
+    end
 
     repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
   end
@@ -112,9 +115,9 @@ describe 'Locking' do
   it 'Revert' do
     repository[:countries].insert 'AR', name: 'Argentina'
 
-    lock repository
-
-    assert_locked { repository[:countries].revert 'AR' }
+    with_locked repository, :revert do
+      assert_locked { repository[:countries].revert 'AR' }
+    end
 
     repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
   end

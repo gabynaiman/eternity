@@ -2,7 +2,7 @@ module Eternity
   class Index < Restruct::NestedHash.new(CollectionIndex)
 
     def initialize
-      super redis: Eternity.redis,
+      super connection: Eternity.connection,
             id: Eternity.keyspace[:index][SecureRandom.uuid]
     end
 
@@ -23,6 +23,10 @@ module Eternity
       Index.new.tap do |index|
         index.restore Blob.read :index, sha1
       end
+    end
+
+    def self.keys
+      Eternity.connection.call 'KEYS', Eternity.keyspace[:index]['*']
     end
 
   end

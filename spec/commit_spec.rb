@@ -74,20 +74,20 @@ describe Repository, 'Commit' do
 
   it 'Clear history cache' do
     3.times do
-      redis.call 'RPUSH', Commit.history_cache_key[SecureRandom.uuid], SecureRandom.uuid
+      connection.call 'RPUSH', Commit.history_cache_key[SecureRandom.uuid], SecureRandom.uuid
     end
 
-    redis.call('KEYS', Commit.history_cache_key['*']).count.must_equal 3
+    connection.call('KEYS', Commit.history_cache_key['*']).count.must_equal 3
 
     Commit.clear_history_cache
 
-    redis.call('KEYS', Commit.history_cache_key['*']).count.must_equal 0
+    connection.call('KEYS', Commit.history_cache_key['*']).count.must_equal 0
   end
 
   describe 'With index' do
 
     def assert_transeint_index
-      redis.call('KEYS', Eternity.keyspace[:index]['*']).must_be_empty
+      connection.call('KEYS', Eternity.keyspace[:index]['*']).must_be_empty
     end
 
     it 'Transient' do
@@ -113,6 +113,55 @@ describe Repository, 'Commit' do
       assert_transeint_index
     end
 
+  end
+
+  describe 'Fast Forward' do
+    
+    it 'Both commits nil' do
+      current_commit = Commit.new(nil)
+      target_commit = Commit.new(nil)
+
+      target_commit.wont_be :fast_forward?, current_commit
+    end
+
+    it 'Current commit nil' do
+      repository[:countries].insert 'AR', name: 'Argentina'
+      target_commit = repository.commit author: 'User', message: 'Commit 1'
+
+      current_commit = Commit.new nil
+
+      target_commit.must_be :fast_forward?, current_commit
+    end
+
+    it 'Target commit nil' do
+      repository[:countries].insert 'AR', name: 'Argentina'
+      current_commit = repository.commit author: 'User', message: 'Commit 1'
+
+      target_commit = Commit.new nil
+
+      target_commit.wont_be :fast_forward?, current_commit
+    end
+
+    it 'Target commit is not fast forward of current commit' do
+      repository[:countries].insert 'AR', name: 'Argentina'
+      target_commit = repository.commit author: 'User', message: 'Commit 1'
+
+      repository[:countries].insert 'BR', name: 'Brasil'
+      current_commit = repository.commit author: 'User', message: 'Commit 2'
+
+      target_commit.wont_be :fast_forward?, current_commit
+    end
+
+    it 'Target commit is fast forward of current commit' do
+      repository[:countries].insert 'AR', name: 'Argentina'
+      current_commit = repository.commit author: 'User', message: 'Commit 1'
+
+      repository[:countries].insert 'BR', name: 'Brasil'
+      target_commit = repository.commit author: 'User', message: 'Commit 2'
+
+      target_commit.must_be :fast_forward?, current_commit
+    end
+   
   end
 
 end

@@ -70,4 +70,12 @@ describe Repository do
     repository.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
   end
 
+  it 'obtain keys' do
+    repository[:countries].insert 'AR', name: 'Argentina'
+    repository.commit author: 'User', message: 'Commit message'
+    repository[:countries].insert 'UY', name: 'Uruguay'
+
+    Repository.keys.must_equal_contents [repository.id[:current], repository.id[:branches], repository.id[:changes][:countries]['UY']]
+  end
+
 end

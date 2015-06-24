@@ -25,7 +25,7 @@ module Eternity
       private
 
       def branches
-        @branches ||= Restruct::Hash.new redis: Eternity.redis,
+        @branches ||= Restruct::Hash.new connection: Eternity.connection,
                                          id: Eternity.keyspace[:branches]
       end
 

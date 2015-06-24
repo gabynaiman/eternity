@@ -73,4 +73,12 @@ describe Index do
     index.to_h.must_equal index_2.to_h
   end
 
+  it 'obtain keys' do
+    index[:countries].insert 'AR', name: 'Argentina'
+    index[:countries].insert 'UY', name: 'Uruguay'
+    index[:cities].insert 'RO', name: 'Rosario'
+    
+    Index.keys.count.must_equal 2
+  end
+
 end

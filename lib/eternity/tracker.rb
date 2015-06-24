@@ -10,7 +10,7 @@ module Eternity
 
     def initialize(repository)
       @repository = repository
-      @changes = Changes.new redis: Eternity.redis, 
+      @changes = Changes.new connection: Eternity.connection, 
                              id: repository.id[:changes]
     end
 

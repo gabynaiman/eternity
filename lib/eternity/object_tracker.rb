@@ -46,7 +46,7 @@ module Eternity
     end
 
     def locker
-      Locky.new repository_name, Eternity.locker_storage
+      Eternity.locker_for repository_name
     end
 
     def repository_name

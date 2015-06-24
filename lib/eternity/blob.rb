@@ -53,24 +53,24 @@ module Eternity
       end
 
       def clear_cache
-        Eternity.redis.call('KEYS', Eternity.keyspace[:blob]['*']).each_slice(1000) do |keys|
-          Eternity.redis.call 'DEL', *keys
+        Eternity.connection.call('KEYS', Eternity.keyspace[:blob]['*']).each_slice(1000) do |keys|
+          Eternity.connection.call 'DEL', *keys
         end
       end
 
       def count
-        Eternity.redis.call('KEYS', Eternity.keyspace[:blob]['*']).count
+        Eternity.connection.call('KEYS', Eternity.keyspace[:blob]['*']).count
       end
 
       private
 
       def write_redis(type, sha1, serialization)
-        Eternity.redis.call 'SET', Eternity.keyspace[:blob][type][sha1], serialization, 
+        Eternity.connection.call 'SET', Eternity.keyspace[:blob][type][sha1], serialization, 
                             'EX', Eternity.blob_cache_expiration
       end
 
       def read_redis(type, sha1)
-        Eternity.redis.call 'GET', Eternity.keyspace[:blob][type][sha1]
+        Eternity.connection.call 'GET', Eternity.keyspace[:blob][type][sha1]
       end
 
       def write_file(type, sha1, serialization)

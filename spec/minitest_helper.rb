@@ -1,6 +1,7 @@
 require 'coverage_helper'
 require 'eternity'
 require 'minitest/autorun'
+require 'minitest/great_expectations'
 require 'timeout'
 require 'turn'
 require 'pry-nav'
@@ -21,8 +22,8 @@ Eternity.configure do |config|
 end
 
 class Minitest::Spec
-  def redis
-    Eternity.redis
+  def connection
+    Eternity.connection
   end
 
   def digest(data)

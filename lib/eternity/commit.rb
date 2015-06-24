@@ -47,12 +47,13 @@ module Eternity
     end
 
     def history_ids
+      return [] if nil?
       if data['history']
         Blob.read :history, data['history']
       else
         # Backward compatibility
         cache_key = self.class.history_cache_key[id]
-        return Eternity.redis.call 'LRANGE', cache_key, 0, -1 if Eternity.redis.call('EXISTS', cache_key) == 1
+        return Eternity.connection.call 'LRANGE', cache_key, 0, -1 if Eternity.connection.call('EXISTS', cache_key) == 1
 
         commit_ids =
           if parent_ids.count == 2
@@ -64,7 +65,7 @@ module Eternity
             parent_id ? [parent_id] + Commit.new(parent_id).history_ids : []
           end
 
-        Eternity.redis.call 'RPUSH', cache_key, *commit_ids
+        Eternity.connection.call 'RPUSH', cache_key, *commit_ids
 
         commit_ids
       end
@@ -75,6 +76,7 @@ module Eternity
     end
 
     def fast_forward?(commit)
+      return false if nil?
       return true if commit.nil?
       history_ids.include? commit.id
     end
@@ -164,8 +166,8 @@ module Eternity
     end
 
     def self.clear_history_cache
-      Eternity.redis.call('KEYS', history_cache_key['*']).each_slice(1000) do |keys|
-        Eternity.redis.call 'DEL', *keys
+      Eternity.connection.call('KEYS', history_cache_key['*']).each_slice(1000) do |keys|
+        Eternity.connection.call 'DEL', *keys
       end
     end
 

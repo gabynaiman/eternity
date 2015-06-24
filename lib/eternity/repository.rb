@@ -7,9 +7,9 @@ module Eternity
       @name = name.to_s
       @id = Eternity.keyspace[:repository][@name]
       @tracker = Tracker.new self
-      @current = Restruct::Hash.new redis: Eternity.redis, id: id[:current]
-      @branches = Restruct::Hash.new redis: Eternity.redis, id: id[:branches]
-      @locker = Locky.new @name, Eternity.locker_storage
+      @current = Restruct::Hash.new connection: Eternity.connection, id: id[:current]
+      @branches = Restruct::Hash.new connection: Eternity.connection, id: id[:branches]
+      @locker = Eternity.locker_for @name
       @default_branch = options.fetch(:default_branch) { 'master' }.to_s
     end
 
@@ -169,6 +169,10 @@ module Eternity
       current.merge! dump['current']
       branches.merge! dump['branches']
       self.delta = dump['delta']
+    end
+
+    def self.keys
+      Eternity.connection.call 'KEYS', Eternity.keyspace[:repository]['*']
     end
 
     private

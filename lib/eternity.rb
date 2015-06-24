@@ -7,7 +7,6 @@ require 'fileutils'
 require 'forwardable'
 require 'restruct'
 require 'base64'
-require 'locky'
 require 'transparent_proxy'
 
 module Eternity
@@ -20,24 +19,24 @@ module Eternity
 
   extend ClassConfig
 
-  attr_config :redis, Redic.new
+  attr_config :connection, Restruct::Connection.new
   attr_config :keyspace, Restruct::Id.new(:eternity)
   attr_config :blob_cache_expiration, 24 * 60 * 60 # 1 day in seconds
   attr_config :blob_path, File.join(Dir.home, '.eternity')
   attr_config :logger, Logger.new(STDOUT)
 
-  def self.locker_storage
-    @locker_storage ||= Restruct::MarshalHash.new redis: Redic.new(redis.url), 
-                                                  id: keyspace[:locker]
+  def self.locker_for(repository_name)
+    Restruct::Locker.new  connection: connection,
+                          id: keyspace[:locker][:repository][repository_name]
   end
-
+ 
   def self.redis_keys
-    redis.call 'KEYS', keyspace['*']
+    connection.call 'KEYS', keyspace['*']
   end
 
   def self.clear_redis
     redis_keys.each do |key|
-      redis.call 'DEL', key
+      connection.call 'DEL', key
     end
   end
 
