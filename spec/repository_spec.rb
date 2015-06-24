@@ -70,12 +70,17 @@ describe Repository do
     repository.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
   end
 
-  it 'obtain keys' do
-    repository[:countries].insert 'AR', name: 'Argentina'
-    repository.commit author: 'User', message: 'Commit message'
-    repository[:countries].insert 'UY', name: 'Uruguay'
+  it 'In memory instances' do
+    Repository.all.must_be_empty
 
-    Repository.keys.must_equal_contents [repository.id[:current], repository.id[:branches], repository.id[:changes][:countries]['UY']]
+    repository_1 = Repository.new 'repository_1'
+    repository_1[:countries].insert 'AR', name: 'Argentina'
+    
+    repository_2 = Repository.new 'repository_2'
+    repository_2[:countries].insert 'UY', name: 'Uruguay'
+    
+    Repository.all.map(&:name).sort.must_equal %w(repository_1 repository_2)
   end
+
 
 end

@@ -1,9 +1,12 @@
 module Eternity
   class Index < Restruct::NestedHash.new(CollectionIndex)
 
-    def initialize
+    attr_reader :name
+
+    def initialize(name=nil)
+      @name = name ? name.to_s : SecureRandom.uuid
       super connection: Eternity.connection,
-            id: Eternity.keyspace[:index][SecureRandom.uuid]
+            id: Eternity.keyspace[:index][@name]
     end
 
     def apply(delta)
@@ -25,8 +28,12 @@ module Eternity
       end
     end
 
-    def self.keys
-      Eternity.connection.call 'KEYS', Eternity.keyspace[:index]['*']
+    def self.all
+      sections_count = Eternity.keyspace[:index].sections.count
+      names = Eternity.connection.call('KEYS', Eternity.keyspace[:index]['*']).map do |key|
+        Restruct::Id.new(key).sections[sections_count]
+      end.uniq
+      names.map { |name| new name }
     end
 
   end

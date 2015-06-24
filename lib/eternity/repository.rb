@@ -10,7 +10,7 @@ module Eternity
       @current = Restruct::Hash.new connection: Eternity.connection, id: id[:current]
       @branches = Restruct::Hash.new connection: Eternity.connection, id: id[:branches]
       @locker = Eternity.locker_for @name
-      @default_branch = options.fetch(:default_branch) { 'master' }.to_s
+      @default_branch = options.fetch(:default_branch, 'master').to_s
     end
 
     def [](collection)
@@ -171,8 +171,12 @@ module Eternity
       self.delta = dump['delta']
     end
 
-    def self.keys
-      Eternity.connection.call 'KEYS', Eternity.keyspace[:repository]['*']
+    def self.all
+      sections_count = Eternity.keyspace[:repository].sections.count
+      names = Eternity.connection.call('KEYS', Eternity.keyspace[:repository]['*']).map do |key|
+        Restruct::Id.new(key).sections[sections_count]
+      end.uniq
+      names.map { |name| new name }
     end
 
     private

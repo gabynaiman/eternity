@@ -73,12 +73,16 @@ describe Index do
     index.to_h.must_equal index_2.to_h
   end
 
-  it 'obtain keys' do
-    index[:countries].insert 'AR', name: 'Argentina'
-    index[:countries].insert 'UY', name: 'Uruguay'
-    index[:cities].insert 'RO', name: 'Rosario'
+  it 'In memory instances' do
+    Index.all.must_be_empty
+
+    index_1 = Index.new 'index_1'
+    index_1[:countries].insert 'AR', name: 'Argentina'
     
-    Index.keys.count.must_equal 2
+    index_2 = Index.new 'index_2'
+    index_2[:countries].insert 'UY', name: 'Uruguay'
+    
+    Index.all.map(&:name).sort.must_equal %w(index_1 index_2)
   end
 
 end
