@@ -85,4 +85,35 @@ describe Index do
     Index.all.map(&:name).sort.must_equal %w(index_1 index_2)
   end
 
+  describe 'Apply' do
+    let(:repository) { Repository.new :test }
+
+    it 'Success' do
+      repository[:countries].insert 'AR', name: 'Argentina'
+      index[:countries].insert 'UY', name: 'Uruguay'
+
+      index.must_be :apply?, repository.delta
+    end
+
+    it 'Fail - Insert existing element' do
+      repository[:countries].insert 'AR', name: 'Argentina'
+      index[:countries].insert 'AR', name: 'Argentina'
+      
+      index.wont_be :apply?, repository.delta
+    end
+
+    it 'Fail - Delete non-existent element' do
+      repository[:countries].delete 'AR'
+      
+      index.wont_be :apply?, repository.delta
+    end
+
+    it 'Fail - Update non-existent' do
+      repository[:countries].update 'AR', name: 'Argentina'
+      
+      index.wont_be :apply?, repository.delta
+    end
+
+  end
+
 end

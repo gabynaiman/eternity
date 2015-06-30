@@ -18,6 +18,15 @@ module Eternity
       end
     end
 
+    def apply?(delta)
+      begin
+        apply(delta)
+        true
+      rescue RuntimeError => ex 
+        false
+      end
+    end
+
     def write_blob
       Blob.write :index, dump
     end
