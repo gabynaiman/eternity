@@ -4,7 +4,7 @@ module Eternity
     Changes = Restruct::NestedHash.new ObjectTracker
 
     extend Forwardable
-    def_delegators :changes, :to_h, :to_primitive, :count, :[], :destroy
+    def_delegators :changes, :to_h, :to_primitive, :count, :[], :destroy, :dump, :restore
 
     def initialize(options)
       @changes = Changes.new options

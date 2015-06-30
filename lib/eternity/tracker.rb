@@ -4,7 +4,7 @@ module Eternity
     Changes = Restruct::NestedHash.new CollectionTracker
     
     extend Forwardable
-    def_delegators :changes, :[], :to_h, :empty?, :destroy
+    def_delegators :changes, :[], :to_h, :empty?, :destroy, :dump, :restore
 
     attr_reader :repository
 

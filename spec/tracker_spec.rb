@@ -140,4 +140,19 @@ describe Tracker do
     tracker.flatten.must_be_empty
   end
 
+  it 'Dump and restore' do
+    tracker[:countries].insert 'AR', name: 'Argentina'
+    
+    tracker.wont_be_empty
+
+    dump = tracker.dump
+    tracker.revert
+
+    tracker.must_be_empty
+
+    tracker.restore dump    
+    tracker.wont_be_empty
+    tracker.flatten.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+  end
+
 end

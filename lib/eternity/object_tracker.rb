@@ -2,7 +2,7 @@ module Eternity
   class ObjectTracker
 
     extend Forwardable
-    def_delegators :changes, :to_a, :to_primitive, :count, :each, :destroy
+    def_delegators :changes, :to_a, :to_primitive, :count, :each, :destroy, :dump, :restore
 
     def initialize(options)
       @changes = Restruct::MarshalArray.new options
