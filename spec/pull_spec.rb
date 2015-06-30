@@ -282,4 +282,67 @@ describe Repository, 'Pull' do
     end
   end
 
+  describe 'Keeping track' do 
+
+    before :each do
+      other_repository = Repository.new :other
+      other_repository[:countries].insert 'AR', name: 'Argentina'
+      other_repository.commit author: 'Other', message: 'Test commit'
+      other_repository.push
+    end
+
+    it 'Without uncommitted changes' do
+      repository.wont_be :changes?
+
+      delta = repository.pull_keeping_track
+
+      delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+      repository.current_commit.message.must_equal 'Test commit'
+      repository.wont_be :changes?
+    end
+
+    it 'With uncommitted changes' do
+      repository[:countries].insert 'UY', name: 'Uruguay'
+
+      repository.must_be :changes?
+
+      delta = repository.pull_keeping_track
+
+      delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+      repository.current_commit.message.must_equal 'Test commit'
+      repository.must_be :changes?
+      repository.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
+    end
+
+    it 'Fail' do
+      repository[:countries].insert 'AR', name: 'ARGENTINA'
+
+      repository.must_be :changes?
+
+      error = proc { repository.pull_keeping_track }.must_raise Repository::ApplyTrackError
+      error.message.must_equal "Can't pull with uncommitted changes with conflict to apply"
+
+      repository.current_commit.must_be :nil?
+      repository.must_be :changes?
+      repository.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'ARGENTINA'}}}
+    end
+
+    it 'Restore track when pull error' do
+      repository[:countries].insert 'UY', name: 'Uruguay'
+
+      repository.must_be :changes?
+
+      raises_exception = -> { raise 'Test error' }
+      repository.stub :pull, raises_exception do
+        error = proc { repository.pull_keeping_track }.must_raise RuntimeError
+        error.message.must_equal "Test error"
+        repository.current_commit.must_be :nil?
+        repository.must_be :changes?
+        repository.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
+      end
+    end
+
+  end
+
+
 end

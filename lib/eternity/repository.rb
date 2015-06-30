@@ -1,6 +1,9 @@
 module Eternity
   class Repository
 
+    class ApplyTrackError < StandardError
+    end
+
     attr_reader :name, :id, :branches
     
     def initialize(name, options={})
@@ -61,6 +64,13 @@ module Eternity
       locker.lock! :commit do
         commit! message: options.fetch(:message), 
                 author:  options.fetch(:author)
+      end
+    end
+
+    def apply_track_in_target_commit?
+      target_commit = Branch[current_branch]
+      target_commit.with_index do |index|
+        index.apply? delta
       end
     end
 
@@ -133,6 +143,25 @@ module Eternity
         checkout commit: target_commit.id
       else 
         merge! target_commit
+      end
+    end
+
+    def pull_keeping_track
+      if changes?
+        if apply_track_in_target_commit?
+          dump = tracker.dump
+          tracker.clear
+          begin
+            result = pull
+          ensure
+            tracker.restore dump
+            result
+          end
+        else
+          raise ApplyTrackError, "Can't pull with uncommitted changes with conflict to apply"
+        end
+      else
+        pull
       end
     end
 
