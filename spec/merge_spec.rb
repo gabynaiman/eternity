@@ -4,7 +4,6 @@ describe Repository, 'Merge' do
 
   let(:repo_1) { Repository.new :test_1 }
   let(:repo_2) { Repository.new :test_2 }
-  let(:repo_3) { Repository.new :test_3 }
 
   let(:commits) { Hash.new }
 
@@ -138,10 +137,17 @@ describe Repository, 'Merge' do
 
   end
 
-  it 'Merge element deleted in two commits' do
+  it 'Merge deleted element in two commits' do
+    # REPO 1: (*)---(1)----(3)--------(5)
+    #                  \      \         \
+    # REPO 2:           -(2)---(4)--(6)--(7)
+
     commit 1, repo_1 do
       insert 'AR', name: 'Argentina'
     end
+
+    assert_history 1, []
+    assert_index 1, 'AR' => digest(name: 'Argentina')
 
     repo_2.checkout commit: commits[1].id
 
@@ -149,31 +155,49 @@ describe Repository, 'Merge' do
       insert 'UY', name: 'Uruguay'
     end
 
+    assert_history 2, [1]
+    assert_index 2, 'AR' => digest(name: 'Argentina'),
+                    'UY' => digest(name: 'Uruguay')
+
     commit 3, repo_2 do
       insert 'BR', name: 'Brasil'
     end
-    
-    merge 4, repo_2, 2
 
-    commits[4].with_index do |index| 
-      index['countries']['UY'].data['name'].must_equal 'Uruguay'
+    assert_history 3, [1]
+    assert_index 3, 'AR' => digest(name: 'Argentina'),
+                    'BR' => digest(name: 'Brasil')
+    
+    merge 4, repo_2, 2 do |delta|
+      delta.must_equal 'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
     end
+
+    assert_history 4, [3,2,1]
+    assert_index 4, 'AR' => digest(name: 'Argentina'),
+                    'BR' => digest(name: 'Brasil'),
+                    'UY' => digest(name: 'Uruguay')
 
     commit 5, repo_1 do
       delete 'UY'
     end
 
+    assert_history 5, [2,1]
+    assert_index 5, 'AR' => digest(name: 'Argentina')
+
     commit 6, repo_2 do
       delete 'UY'
     end
 
+    assert_history 6, [4,3,2,1]
+    assert_index 6, 'AR' => digest(name: 'Argentina'),
+                    'BR' => digest(name: 'Brasil')
+
     merge 7, repo_2, 5 do |delta|
-      delta.must_be :empty?
+      delta.must_be_nil
     end
 
-    commits[7].with_index do |index| 
-      index['countries']['UY'].must_be :nil?
-    end
+    assert_history 7, [6,4,3,5,2,1]
+    assert_index 7, 'AR' => digest(name: 'Argentina'),
+                    'BR' => digest(name: 'Brasil')
   end
 
   it 'Delta, index and history' do

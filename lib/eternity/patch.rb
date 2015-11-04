@@ -60,6 +60,8 @@ module Eternity
               elements.each do |id, change|
                 if change['action'] == UPDATE && current_index[collection][id].sha1 == Blob.digest(Blob.serialize(change['data']))
                   change = nil 
+                elsif change['action'] == DELETE && !current_index[collection].include?(id)
+                  change = nil
                 end
                 hash[collection][id] = change if change
               end
