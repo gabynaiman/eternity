@@ -28,6 +28,154 @@ describe Repository, 'Merge' do
     commits[id].must_equal_index 'countries' => expected
   end
 
+  describe 'Merge Errors' do
+
+    it 'case 1' do
+      skip
+      commit 1, repo_1 do
+        insert 'AR', name: 'Argentina'
+      end
+
+      repo_2.checkout commit: commits[1].id
+
+      commit 2, repo_2 do
+        insert 'UY', name: 'Uruguay'
+      end
+
+      commit 3, repo_1 do
+        update 'AR', name: 'Brasil'
+      end
+
+      commit 4, repo_1 do
+        update 'AR', name: 'Argentina'
+      end
+
+      merge 5, repo_2, 4 do |delta|
+        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
+      end
+
+      commits[5].with_index do |index| 
+        index['countries']['AR'].data['name'].must_equal 'Argentina'
+      end
+    end
+
+    it 'case 2' do
+      skip
+      commit 1, repo_1 do
+        insert 'AR', name: 'Argentina'
+      end
+
+      repo_2.checkout commit: commits[1].id
+
+      commit 2, repo_2 do
+        insert 'UY', name: 'Uruguay'
+        update 'AR', name: 'Brasil'
+      end
+
+      commit 3, repo_2 do
+        update 'AR', name: 'Argentina'
+      end
+
+      commit 4, repo_1 do
+        update 'AR', name: 'Arg'
+      end
+
+      commit 5, repo_1 do
+        update 'AR', name: 'Argentina'
+      end
+
+      merge 6, repo_2, 5 do |delta|
+        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
+      end
+
+      commits[6].with_index do |index| 
+        index['countries']['AR'].data['name'].must_equal 'Argentina'
+      end
+    end
+
+    it 'case 3 (patched)' do
+      skip
+      commit 1, repo_1 do
+        insert 'AR', name: 'Argentina'
+      end
+
+      repo_2.checkout commit: commits[1].id
+
+      commit 2, repo_2 do
+        insert 'UY', name: 'Uruguay'
+        update 'AR', name: 'Brasil'
+      end
+
+      commit 3, repo_2 do
+        update 'AR', name: 'Argentina '
+      end
+
+      commit 4, repo_1 do
+        update 'AR', name: 'Arg'
+      end
+
+      commit 5, repo_1 do
+        update 'AR', name: 'Argentina'
+      end
+
+      merge 6, repo_2, 5 do |delta|
+        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
+      end
+
+      commits[6].with_index do |index| 
+        index['countries']['AR'].data['name'].must_equal 'Argentina'
+      end
+
+      merge 7, repo_1, 3 do |delta|
+        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
+      end
+
+      commits[7].with_index do |index| 
+        index['countries']['AR'].data['name'].must_equal 'Argentina'
+      end      
+
+    end
+
+  end
+
+  it 'Merge element deleted in two commits' do
+    commit 1, repo_1 do
+      insert 'AR', name: 'Argentina'
+    end
+
+    repo_2.checkout commit: commits[1].id
+
+    commit 2, repo_1 do
+      insert 'UY', name: 'Uruguay'
+    end
+
+    commit 3, repo_2 do
+      insert 'BR', name: 'Brasil'
+    end
+    
+    merge 4, repo_2, 2
+
+    commits[4].with_index do |index| 
+      index['countries']['UY'].data['name'].must_equal 'Uruguay'
+    end
+
+    commit 5, repo_1 do
+      delete 'UY'
+    end
+
+    commit 6, repo_2 do
+      delete 'UY'
+    end
+
+    merge 7, repo_2, 5 do |delta|
+      delta.must_be :empty?
+    end
+
+    commits[7].with_index do |index| 
+      index['countries']['UY'].must_be :nil?
+    end
+  end
+
   it 'Delta, index and history' do
     # REPO 1: (*)---(1)--(2)--(5)---(6)---(9)--(11)
     #                  \          /     \       /
