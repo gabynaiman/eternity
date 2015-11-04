@@ -19,6 +19,10 @@ describe Repository, 'Merge' do
     delta
   end
 
+  def checkout(id, repo)
+    repo.checkout commit: commits[id].id
+  end
+
   def assert_history(id, history_ids)
     commits[id].history.must_equal history_ids.map { |c| commits[c] }
   end
@@ -35,7 +39,7 @@ describe Repository, 'Merge' do
         insert 'AR', name: 'Argentina'
       end
 
-      repo_2.checkout commit: commits[1].id
+      checkout 1, repo_2
 
       commit 2, repo_2 do
         insert 'UY', name: 'Uruguay'
@@ -64,7 +68,7 @@ describe Repository, 'Merge' do
         insert 'AR', name: 'Argentina'
       end
 
-      repo_2.checkout commit: commits[1].id
+      checkout 1, repo_2
 
       commit 2, repo_2 do
         insert 'UY', name: 'Uruguay'
@@ -98,7 +102,7 @@ describe Repository, 'Merge' do
         insert 'AR', name: 'Argentina'
       end
 
-      repo_2.checkout commit: commits[1].id
+      checkout 1, repo_2
 
       commit 2, repo_2 do
         insert 'UY', name: 'Uruguay'
@@ -149,7 +153,7 @@ describe Repository, 'Merge' do
     assert_history 1, []
     assert_index 1, 'AR' => digest(name: 'Argentina')
 
-    repo_2.checkout commit: commits[1].id
+    checkout 1, repo_2
 
     commit 2, repo_1 do
       insert 'UY', name: 'Uruguay'
@@ -221,7 +225,7 @@ describe Repository, 'Merge' do
     assert_history 2, [1]
     assert_index 2, 'AR' => digest(name: 'Argentina')
 
-    repo_2.checkout commit: commits[1].id
+    checkout 1, repo_2
 
     commit 3, repo_2 do
       insert 'UY', name: 'Uruguay'
