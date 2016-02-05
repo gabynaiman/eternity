@@ -62,6 +62,29 @@ module Eternity
         Eternity.connection.call('KEYS', Eternity.keyspace[:blob]['*']).count
       end
 
+      def orphan_files
+        repositories = Repository.all
+        
+        repo_commits = repositories.map { |r| r.current_commit } + 
+                       repositories.flat_map { |r| r.branches.values.map { |c| Commit.new c } }
+        
+        branch_commits = Branch.names.map { |b| Branch[b] }
+
+        used_by_type = {
+          commit: (repo_commits.flat_map { |c| [c.id] + c.history_ids } + branch_commits.flat_map { |c| [c.id] + c.history_ids }).uniq
+        }
+
+        commit_blobs = used_by_type[:commit].map { |id| Blob.read :commit, id }
+
+        [:index, :delta, :history].each do |type|
+          used_by_type[type] = commit_blobs.map { |b| b[type.to_s] }.compact
+        end
+
+        used_by_type.each_with_object({}) do |(type, used), hash|
+          hash[type] = files_of(type) - used.map { |id| file_for type, id }
+        end
+      end
+
       private
 
       def write_redis(type, sha1, serialization)
@@ -93,6 +116,10 @@ module Eternity
 
       def file_for(type, sha1)
         File.join Eternity.blob_path, type.to_s, sha1[0..1], sha1[2..-1]
+      end
+
+      def files_of(type)
+        Dir.glob File.join(Eternity.blob_path, type.to_s, '*', '*')
       end
 
     end
