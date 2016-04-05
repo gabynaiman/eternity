@@ -22,7 +22,7 @@ module Eternity
         @base_commit ||= Commit.base_of current_commit, target_commit
       end
 
-      def delta 
+      def delta
         @delta ||= TransparentProxy.new { calculate_delta }
       end
 
@@ -47,12 +47,12 @@ module Eternity
       def calculate_delta
         base_commit.with_index do |base_index|
           current_commit.with_index do |current_index|
-            
+
             current_delta = Delta.merge current_history.reverse.map(&:delta), base_index
             target_delta = Delta.merge target_history.reverse.map(&:delta), base_index
             revert_delta = Delta.revert current_delta, base_index
 
-            merged_delta = merge_deltas current_delta, target_delta, revert_delta, base_index
+            merged_delta = merge_deltas target_delta, revert_delta, base_index
 
             merged_delta.each_with_object({}) do |(collection, elements), hash|
               hash[collection] = {}
@@ -92,7 +92,7 @@ module Eternity
         super
       end
 
-      def merge_deltas(current_delta, target_delta, revert_delta, base_index)
+      def merge_deltas(target_delta, revert_delta, base_index)
         remaining_delta = Delta.merge remaining_history.reverse.map(&:delta), base_index
         Delta.merge [revert_delta, target_delta, remaining_delta], base_index
       end
@@ -106,7 +106,7 @@ module Eternity
 
       private
 
-      def merge_deltas(current_delta, target_delta, revert_delta, base_index)
+      def merge_deltas(target_delta, revert_delta, base_index)
         Delta.merge [revert_delta, target_delta], base_index
       end
 
