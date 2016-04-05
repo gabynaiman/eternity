@@ -18,15 +18,14 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'redic', '~> 1.5.0'
-  spec.add_dependency 'restruct', '~> 0.1.0'
-  spec.add_dependency 'class_config', '~> 0.0.2'
-  spec.add_dependency 'transparent_proxy', '~> 0.0.4'
+  spec.add_dependency 'restruct', '~> 0.1'
+  spec.add_dependency 'class_config', '~> 0.0'
+  spec.add_dependency 'transparent_proxy', '~> 0.0'
 
   if RUBY_PLATFORM == 'java'
-    spec.add_dependency 'msgpack-jruby'
+    spec.add_dependency 'msgpack-jruby', '~> 1.4'
   else
-    spec.add_dependency 'msgpack', '~> 0.5.9'
+    spec.add_dependency 'msgpack', '~> 0.7'
   end
 
   spec.add_development_dependency 'bundler', '~> 1.5'

@@ -1,4 +1,3 @@
-require 'redic'
 require 'digest/sha1'
 require 'msgpack'
 require 'class_config'
