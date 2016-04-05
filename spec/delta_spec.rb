@@ -313,4 +313,70 @@ describe 'Delta' do
 
   end
 
+  it 'Insert -> Delete -> Update' do
+    #                 P         P     M
+    # REPO 1: (*)----(1)-------(4)---(7)
+    #           \       \         \  /
+    # REPO 2:    \-(2)--(3)---(5)--(6)
+    #                    M          MP
+
+    repo_1[:countries].insert 'AR', name: 'Argentina'
+    repo_1.commit author: 'User 1', message: 'Commit 1'
+    repo_1.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+    }
+
+    repo_1.push
+
+    repo_2[:countries].insert 'UY', name: 'Uruguay'
+    repo_2.commit author: 'User 2', message: 'Commit 2'
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'UY' => digest(name: 'Uruguay'),
+    }
+
+    delta = repo_2.pull
+    delta.must_equal 'countries' => {
+      'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
+    }
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina'),
+      'UY' => digest(name: 'Uruguay')
+    }
+
+    repo_1[:countries].delete 'AR'
+    repo_1.commit author: 'User 1', message: 'Commit 4'
+    repo_1.current_commit.must_equal_index Hash.new
+
+    repo_1.push
+
+    repo_2[:countries].update 'AR', name: 'Argentina', number: 54
+    repo_2.commit author: 'User 2', message: 'Commit 5'
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina', number: 54),
+      'UY' => digest(name: 'Uruguay')
+    }
+
+    delta = repo_2.pull
+    delta.must_be_empty
+
+    repo_2.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina', number: 54),
+      'UY' => digest(name: 'Uruguay')
+    }
+
+    repo_2.push
+
+    delta = repo_1.pull
+    delta.must_equal 'countries' => {
+      'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina', 'number' => 54}},
+      'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}},
+    }
+
+    repo_1.current_commit.must_equal_index 'countries' => {
+      'AR' => digest(name: 'Argentina', number: 54),
+      'UY' => digest(name: 'Uruguay')
+    }
+  end
+
 end

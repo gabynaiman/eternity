@@ -18,22 +18,15 @@ module Eternity
         union(deltas).each_with_object({}) do |(collection, elements), hash|
           hash[collection] = {}
           elements.each do |id, changes|
-            changes.each do |change|
-              current_change = change
-              if hash[collection][id]
-                current_change = TrackFlatter.flatten [hash[collection][id], change]
-                if current_change && [INSERT, UPDATE].include?(current_change['action'])
-                  base_data = base_index[collection].include?(id) ? base_index[collection][id].data : {}
-                  current_change['data'] = ConflictResolver.resolve hash[collection][id]['data'] || base_data,
-                                                                    change['data'],
-                                                                    base_data
-                end
-              elsif hash[collection].key?(id) && change['action'] == DELETE
-                current_change = nil
+            current_change = TrackFlatter.flatten changes
+            if current_change 
+              if current_change['action'] == UPDATE
+                base_data = base_index[collection].include?(id) ? base_index[collection][id].data : {}
+                current_change['data'] = changes.select { |c| c['data'] }
+                                                .inject(base_data) { |d,c| ConflictResolver.resolve d, c['data'], base_data }
               end
               hash[collection][id] = current_change
             end
-            hash[collection].delete id unless hash[collection][id]
           end
           hash.delete collection if hash[collection].empty?
         end        
