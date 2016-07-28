@@ -58,7 +58,7 @@ module Eternity
         end
       end
 
-      def count
+      def cache_size
         Eternity.connection.call('KEYS', Eternity.keyspace[:blob]['*']).count
       end
 
