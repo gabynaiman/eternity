@@ -27,6 +27,14 @@ describe Blob do
     raise "File not found: #{filename}"
   end
 
+  def with_cache_size(limit)
+    blob_cache_max_size = Eternity.blob_cache_max_size
+    Eternity.blob_cache_max_size = limit
+    yield
+  ensure
+    Eternity.blob_cache_max_size = blob_cache_max_size
+  end
+
   it 'Write in redis and file system' do
     sha1 = Blob.write :xyz, data
 
@@ -34,6 +42,18 @@ describe Blob do
     file_data = wait_and_read_file filename
 
     [redis_data, decode(file_data)].each { |d| MessagePack.unpack(d).must_equal data }
+  end
+
+  it 'Write only in file system' do
+    with_cache_size 0 do
+      sha1 = Blob.write :xyz, data
+
+      redis_data = connection.call 'GET', key
+      redis_data.must_be_nil
+
+      file_data = wait_and_read_file filename
+      MessagePack.unpack(decode(file_data)).must_equal data
+    end
   end
 
   it 'Read from redis' do

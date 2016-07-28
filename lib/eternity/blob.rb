@@ -88,8 +88,10 @@ module Eternity
       private
 
       def write_redis(type, sha1, serialization)
-        Eternity.connection.call 'SET', Eternity.keyspace[:blob][type][sha1], serialization, 
-                            'EX', Eternity.blob_cache_expiration
+        if serialization.size <= Eternity.blob_cache_max_size
+          Eternity.connection.call 'SET', Eternity.keyspace[:blob][type][sha1], serialization, 
+                                   'EX', Eternity.blob_cache_expiration
+        end
       end
 
       def read_redis(type, sha1)

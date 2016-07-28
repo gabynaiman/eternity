@@ -18,6 +18,7 @@ Eternity.configure do |config|
   config.keyspace = Restruct::Id.new :eternity_test
   config.blob_path = File.expand_path('../../tmp', __FILE__)
   config.blob_cache_expiration = 30
+  config.blob_cache_max_size = 50
   config.logger.level = Logger::ERROR
 end
 
