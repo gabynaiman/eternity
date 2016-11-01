@@ -1,18 +1,12 @@
 require 'coverage_helper'
 require 'eternity'
 require 'minitest/autorun'
+require 'minitest/colorin'
 require 'minitest/great_expectations'
 require 'timeout'
-require 'turn'
 require 'pry-nav'
 
 include Eternity
-
-Turn.config do |c|
-  c.format = :pretty
-  c.natural = true
-  c.ansi = true
-end
 
 Eternity.configure do |config|
   config.keyspace = Restruct::Id.new :eternity_test
