@@ -1,10 +1,10 @@
 # Eternity
 
-[![Gem Version](https://badge.fury.io/rb/eternity.png)](https://rubygems.org/gems/eternity)
-[![Build Status](https://travis-ci.org/gabynaiman/eternity.png?branch=master)](https://travis-ci.org/gabynaiman/eternity)
-[![Coverage Status](https://coveralls.io/repos/gabynaiman/eternity/badge.png?branch=master)](https://coveralls.io/r/gabynaiman/eternity?branch=master)
-[![Code Climate](https://codeclimate.com/github/gabynaiman/eternity.png)](https://codeclimate.com/github/gabynaiman/eternity)
-[![Dependency Status](https://gemnasium.com/gabynaiman/eternity.png)](https://gemnasium.com/gabynaiman/eternity)
+[![Gem Version](https://badge.fury.io/rb/eternity.svg)](https://rubygems.org/gems/eternity)
+[![Build Status](https://travis-ci.org/gabynaiman/eternity.svg?branch=master)](https://travis-ci.org/gabynaiman/eternity)
+[![Coverage Status](https://coveralls.io/repos/gabynaiman/eternity/badge.svg?branch=master)](https://coveralls.io/r/gabynaiman/eternity?branch=master)
+[![Code Climate](https://codeclimate.com/github/gabynaiman/eternity.svg)](https://codeclimate.com/github/gabynaiman/eternity)
+[![Dependency Status](https://gemnasium.com/gabynaiman/eternity.svg)](https://gemnasium.com/gabynaiman/eternity)
 
 Distributed database version control system
 
