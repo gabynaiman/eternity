@@ -25,7 +25,7 @@ Gem::Specification.new do |spec|
   if RUBY_PLATFORM == 'java'
     spec.add_dependency 'msgpack-jruby', '~> 1.4'
   else
-    spec.add_dependency 'msgpack', '~> 0.7'
+    spec.add_dependency 'msgpack', '~> 1.0'
   end
 
   spec.add_development_dependency 'bundler', '~> 1.12'
