@@ -18,7 +18,7 @@ describe Blob do
 
   def wait_and_read_file(filename)
     Timeout.timeout(5) do
-      until File.exists?(filename) && File.size(filename) > 0
+      until File.exist?(filename) && File.size(filename) > 0
         sleep 0.001
       end
       IO.read filename
@@ -59,7 +59,7 @@ describe Blob do
   it 'Read from redis' do
     connection.call 'SET', key, serialization
     
-    refute File.exists?(filename)
+    refute File.exist?(filename)
     Blob.read(:xyz, sha1).must_equal data
   end
 
