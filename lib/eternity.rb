@@ -41,7 +41,7 @@ module Eternity
   end
 
   def self.clear_file_system
-    FileUtils.rm_rf blob_path if Dir.exists? blob_path
+    FileUtils.rm_rf blob_path if Dir.exist? blob_path
   end
 
 end

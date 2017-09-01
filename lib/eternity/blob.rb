@@ -100,9 +100,9 @@ module Eternity
 
       def write_file(type, sha1, serialization)
         filename = file_for type, sha1
-        if !File.exists? filename
+        if !File.exist? filename
           dirname = File.dirname filename
-          FileUtils.mkpath dirname unless Dir.exists? dirname
+          FileUtils.mkpath dirname unless Dir.exist? dirname
           File.write filename, Base64.encode64(serialization)
         end
       end
