@@ -18,8 +18,8 @@ module Eternity
 
   extend ClassConfig
 
-  attr_config :connection, Restruct::Connection.new
-  attr_config :keyspace, Restruct::Id.new(:eternity)
+  attr_config :connection, Restruct::Connection.simple
+  attr_config :keyspace, Restruct::Id[:eternity]
   attr_config :blob_cache_expiration, 24 * 60 * 60 # 1 day in seconds
   attr_config :blob_cache_max_size, 10 * 1024 * 1024 # 10 MB
   attr_config :blob_path, File.join(Dir.home, '.eternity')

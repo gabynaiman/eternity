@@ -9,7 +9,7 @@ require 'pry-nav'
 include Eternity
 
 Eternity.configure do |config|
-  config.keyspace = Restruct::Id.new :eternity_test
+  config.keyspace = Restruct::Id[:eternity_test]
   config.blob_path = File.expand_path('../../tmp', __FILE__)
   config.blob_cache_expiration = 30
   config.blob_cache_max_size = 50

@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ['lib']
 
-  spec.add_dependency 'restruct', '~> 0.1'
+  spec.add_dependency 'restruct', '~> 1.0'
   spec.add_dependency 'class_config', '~> 0.0'
   spec.add_dependency 'transparent_proxy', '~> 0.0'
 
