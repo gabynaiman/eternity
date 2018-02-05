@@ -92,12 +92,24 @@ describe Blob do
     Blob.cache_size.must_equal 0
   end
 
-  it 'Normalize serialization' do
-    time = Time.now
-    data_1 = {key_1: 1, key_2: time}
-    data_2 = {key_2: time.utc.strftime(TIME_FORMAT), key_1: 1}
+  describe 'Normalize serialization' do
 
-    Blob.serialize(data_1).must_equal Blob.serialize(data_2)
-  end
+    it 'Sort keys and normalize time' do
+      time = Time.now
+      data_1 = {key_1: 1, key_2: time}
+      data_2 = {key_2: time.utc.strftime(TIME_FORMAT), key_1: 1}
+
+      Blob.serialize(data_1).must_equal Blob.serialize(data_2)
+    end
+
+    it 'Normalize string encoding' do
+      string = 'test'
+      data_1 = {key_1: [string], key_2: string.encode('UTF-8')}
+      data_2 = {key_1: [string.encode('ISO8859-1')], key_2: string.encode('ASCII-8BIT')}
+
+      Blob.serialize(data_1).must_equal Blob.serialize(data_2)
+    end
+
+  end   
 
 end

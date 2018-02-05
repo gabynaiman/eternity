@@ -44,7 +44,10 @@ module Eternity
         case data
           when Hash
             sorted_data = Hash[data.sort_by { |k,v| k.to_s }]
-            sorted_data.each { |k,v| sorted_data[k] = v.utc.strftime TIME_FORMAT if v.respond_to? :utc }
+            sorted_data.each do |k,v| 
+              sorted_data[k] = v.utc.strftime TIME_FORMAT if v.respond_to? :utc
+              sorted_data[k] = v.encode('UTF-8') if v.respond_to? :encode
+            end
           when Array
             data.map { |d| normalize d }
           else
