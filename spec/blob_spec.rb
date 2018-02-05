@@ -105,7 +105,7 @@ describe Blob do
     it 'Normalize string encoding' do
       string = 'test'
       data_1 = {key_1: [string], key_2: string.encode('UTF-8')}
-      data_2 = {key_1: [string.encode('ISO8859-1')], key_2: string.encode('ASCII-8BIT')}
+      data_2 = {key_1: [string.encode('ASCII-8BIT')], key_2: string.encode('ASCII-8BIT')}
 
       Blob.serialize(data_1).must_equal Blob.serialize(data_2)
     end
