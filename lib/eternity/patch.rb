@@ -48,8 +48,8 @@ module Eternity
         base_commit.with_index do |base_index|
           current_commit.with_index do |current_index|
 
-            current_delta = Delta.merge current_history.reverse.map(&:delta), base_index
-            target_delta = Delta.merge target_history.reverse.map(&:delta), base_index
+            current_delta = Delta.merge current_history.reverse.map(&:delta)
+            target_delta = Delta.merge target_history.reverse.map(&:delta)
             revert_delta = Delta.revert current_delta, base_index
 
             merged_delta = merge_deltas target_delta, revert_delta, base_index
@@ -93,7 +93,7 @@ module Eternity
       end
 
       def merge_deltas(target_delta, revert_delta, base_index)
-        remaining_delta = Delta.merge remaining_history.reverse.map(&:delta), base_index
+        remaining_delta = Delta.merge remaining_history.reverse.map(&:delta)
         Delta.merge [revert_delta, target_delta, remaining_delta], base_index
       end
 

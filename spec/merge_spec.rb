@@ -8,7 +8,7 @@ describe Repository, 'Merge' do
   let(:commits) { Hash.new }
 
   def commit(id, repo, &block)
-    repo[:countries].instance_eval &block
+    repo[:countries].instance_eval(&block)
     commits[id] = repo.commit author: repo.name, message: "Commit #{id}"
   end
 
@@ -31,10 +31,9 @@ describe Repository, 'Merge' do
     commits[id].must_equal_index 'countries' => expected
   end
 
-  describe 'Merge Errors' do
+  describe 'Errors' do
 
     it 'case 1' do
-      skip
       commit 1, repo_1 do
         insert 'AR', name: 'Argentina'
       end
@@ -54,16 +53,14 @@ describe Repository, 'Merge' do
       end
 
       merge 5, repo_2, 4 do |delta|
-        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
+        delta.must_be_nil
       end
 
-      commits[5].with_index do |index| 
-        index['countries']['AR'].data['name'].must_equal 'Argentina'
-      end
+      assert_index 5, 'AR' => digest(name: 'Argentina'),
+                      'UY' => digest(name: 'Uruguay')
     end
 
     it 'case 2' do
-      skip
       commit 1, repo_1 do
         insert 'AR', name: 'Argentina'
       end
@@ -88,16 +85,14 @@ describe Repository, 'Merge' do
       end
 
       merge 6, repo_2, 5 do |delta|
-        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
+        delta.must_be_nil
       end
 
-      commits[6].with_index do |index| 
-        index['countries']['AR'].data['name'].must_equal 'Argentina'
-      end
+      assert_index 6, 'AR' => digest(name: 'Argentina'),
+                      'UY' => digest(name: 'Uruguay')
     end
 
     it 'case 3 (patched)' do
-      skip
       commit 1, repo_1 do
         insert 'AR', name: 'Argentina'
       end
@@ -110,33 +105,65 @@ describe Repository, 'Merge' do
       end
 
       commit 3, repo_2 do
-        update 'AR', name: 'Argentina '
+        update 'AR', name: 'Republica Argentina'
       end
+
+      assert_index 3, 'AR' => digest(name: 'Republica Argentina'),
+                      'UY' => digest(name: 'Uruguay')
 
       commit 4, repo_1 do
         update 'AR', name: 'Arg'
       end
 
       commit 5, repo_1 do
+        update 'AR', name: 'Argentina', code: 'ARG'
+      end
+
+      merge 6, repo_2, 5 do |delta|
+        delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Republica Argentina', 'code' => 'ARG'}
+      end
+
+      assert_index 6, 'AR' => digest(name: 'Republica Argentina', code: 'ARG'),
+                      'UY' => digest(name: 'Uruguay')
+
+      merge 7, repo_1, 3 do |delta|
+        delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Republica Argentina', 'code' => 'ARG'}
+      end
+
+      assert_index 7, 'AR' => digest(name: 'Republica Argentina', code: 'ARG'),
+                      'UY' => digest(name: 'Uruguay')
+    end
+
+    it 'case 4' do
+      commit 1, repo_1 do
+        insert 'AR', name: 'Argentina'
+      end
+
+      checkout 1, repo_2
+
+      commit 2, repo_1 do
+        update 'AR', name: 'Republica Argentina'
+      end
+
+      commit 3, repo_2 do
+        update 'AR', name: 'Argentina', code: 'ARG'
+      end
+
+      merge 4, repo_2, 2 do |delta|
+        delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Republica Argentina', 'code' => 'ARG'}
+      end
+
+      assert_index 4, 'AR' => digest(name: 'Republica Argentina', code: 'ARG')
+
+      commit 5, repo_1 do
         update 'AR', name: 'Argentina'
       end
 
       merge 6, repo_2, 5 do |delta|
-        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
+        delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG'}
       end
 
-      commits[6].with_index do |index| 
-        index['countries']['AR'].data['name'].must_equal 'Argentina'
-      end
-
-      merge 7, repo_1, 3 do |delta|
-        #delta['AR'].must_equal => {'action' => 'update', 'data' => {'name' => 'Argentina'}}
-      end
-
-      commits[7].with_index do |index| 
-        index['countries']['AR'].data['name'].must_equal 'Argentina'
-      end      
-
+      assert_index 6, 'AR' => digest(name: 'Argentina', code: 'ARG')
     end
 
   end

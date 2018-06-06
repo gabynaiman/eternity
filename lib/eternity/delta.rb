@@ -14,16 +14,21 @@ module Eternity
         end
       end
 
-      def merge(deltas, base_index)
+      def merge(deltas, base_index=nil)
         union(deltas).each_with_object({}) do |(collection, elements), hash|
           hash[collection] = {}
           elements.each do |id, changes|
             current_change = TrackFlatter.flatten changes
             if current_change 
               if current_change['action'] == UPDATE
-                base_data = base_index[collection].include?(id) ? base_index[collection][id].data : {}
-                current_change['data'] = changes.select { |c| c['data'] }
-                                                .inject(base_data) { |d,c| ConflictResolver.resolve d, c['data'], base_data }
+                if base_index
+                  base_data = base_index[collection].include?(id) ? base_index[collection][id].data : {}
+                  current_change['data'] = changes.select { |c| c['data'] }
+                                                  .inject(base_data) { |d,c| ConflictResolver.resolve d, c['data'], base_data }
+                else
+                  current_change['data'] = changes.select { |c| c['data'] }
+                                                  .inject({}) { |d,c| ConflictResolver.resolve d, c['data'] }
+                end
               end
               hash[collection][id] = current_change
             end
