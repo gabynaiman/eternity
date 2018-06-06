@@ -48,27 +48,7 @@ module Eternity
 
     def history_ids
       return [] if nil?
-      if data['history']
-        Blob.read :history, data['history']
-      else
-        # Backward compatibility
-        cache_key = self.class.history_cache_key[id]
-        return Eternity.connection.call 'LRANGE', cache_key, 0, -1 if Eternity.connection.call('EXISTS', cache_key) == 1
-
-        commit_ids =
-          if parent_ids.count == 2
-            current_history_ids = [parent_ids[0]] + Commit.new(parent_ids[0]).history_ids
-            target_history_ids = [parent_ids[1]] + Commit.new(parent_ids[1]).history_ids
-            current_history_ids - target_history_ids + target_history_ids
-          else
-            parent_id = parent_ids[0]
-            parent_id ? [parent_id] + Commit.new(parent_id).history_ids : []
-          end
-
-        Eternity.connection.call 'RPUSH', cache_key, *commit_ids
-
-        commit_ids
-      end
+      Blob.read :history, data['history']
     end
 
     def history
