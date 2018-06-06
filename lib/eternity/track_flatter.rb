@@ -45,8 +45,8 @@ module Eternity
       end
 
       def expand(change)
-        return change if change.key? 'data'
-        change.tap do |ch|
+        return change.dup if change.key? 'data'
+        change.dup.tap do |ch|
           sha1 = ch.delete 'blob'
           ch['data'] = Blob.read(:data, sha1) if sha1
         end
