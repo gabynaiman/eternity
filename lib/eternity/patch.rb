@@ -45,28 +45,40 @@ module Eternity
       private
 
       def calculate_delta
-        base_commit.with_index do |base_index|
-          current_commit.with_index do |current_index|
-
-            current_delta = Delta.merge current_history.reverse.map(&:delta)
-            target_delta = Delta.merge target_history.reverse.map(&:delta)
-            revert_delta = Delta.revert current_delta, base_index
-
-            merged_delta = merge_deltas target_delta, revert_delta, base_index
-
-            merged_delta.each_with_object({}) do |(collection, elements), hash|
-              hash[collection] = {}
-
-              elements.each do |id, change|
-                if change['action'] == UPDATE && current_index[collection][id].sha1 == Blob.digest(Blob.serialize(change['data']))
-                  change = nil 
-                elsif change['action'] == DELETE && !current_index[collection].include?(id)
-                  change = nil
-                end
-                hash[collection][id] = change if change
+        if current_commit.nil?
+          target_commit.with_index do |target_index| 
+            target_index.each_with_object({}) do |(collection, collection_index), hash|
+              hash[collection] = collection_index.ids.each_with_object({}) do |id, h|
+                h[id] = {
+                  'action' => INSERT,
+                  'data' => collection_index[id].data
+                }
               end
+            end
+          end
+        else
+          base_commit.with_index do |base_index|
+            current_commit.with_index do |current_index|
+              current_delta = Delta.merge current_history.reverse.map(&:delta)
+              target_delta = Delta.merge target_history.reverse.map(&:delta)
+              revert_delta = Delta.revert current_delta, base_index
 
-              hash.delete collection if hash[collection].empty?
+              merged_delta = merge_deltas target_delta, revert_delta, base_index
+
+              merged_delta.each_with_object({}) do |(collection, elements), hash|
+                hash[collection] = {}
+
+                elements.each do |id, change|
+                  if change['action'] == UPDATE && current_index[collection][id].sha1 == Blob.digest(Blob.serialize(change['data']))
+                    change = nil 
+                  elsif change['action'] == DELETE && !current_index[collection].include?(id)
+                    change = nil
+                  end
+                  hash[collection][id] = change if change
+                end
+
+                hash.delete collection if hash[collection].empty?
+              end
             end
           end
         end
