@@ -166,6 +166,35 @@ describe Repository, 'Merge' do
       assert_index 6, 'AR' => digest(name: 'Argentina', code: 'ARG')
     end
 
+    it 'case 5' do
+      skip
+      commit 1, repo_1 do
+        insert 'AR', name: 'Argentina'
+      end
+
+      checkout 1, repo_2
+
+      commit 2, repo_2 do
+        insert 'UY', name: 'Uruguay'
+      end
+
+      commit 3, repo_1 do
+        update 'AR', name: 'Republica Argentina'
+      end
+
+      merge 4, repo_2, 3 do |delta|
+        delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Republica Argentina'}
+      end
+
+      commit 5, repo_1 do
+        update 'AR', name: 'Argentina'
+      end
+
+      merge 6, repo_1, 4 do |delta|
+        delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Argentina'}
+      end
+    end
+
   end
 
   it 'Merge deleted element in two commits' do
