@@ -13,10 +13,10 @@ describe Repository, 'Merge' do
   end
 
   def merge(id, repo, target_id)
-    delta = repo.merge commit: commits[target_id].id
+    patch = repo.merge commit: commits[target_id].id
     commits[id] = repo.current_commit
-    yield delta['countries'] if block_given?
-    delta
+    yield patch.delta['countries'], patch.current_commit, patch.target_commit if block_given?
+    patch
   end
 
   def checkout(id, repo)
@@ -52,8 +52,10 @@ describe Repository, 'Merge' do
         update 'AR', name: 'Argentina'
       end
 
-      merge 5, repo_2, 4 do |delta|
+      merge 5, repo_2, 4 do |delta, current_commit, target_commit|
         delta.must_be_nil
+        current_commit.must_equal commits[2]
+        target_commit.must_equal commits[4]
       end
 
       assert_index 5, 'AR' => digest(name: 'Argentina'),
@@ -119,15 +121,19 @@ describe Repository, 'Merge' do
         update 'AR', name: 'Argentina', code: 'ARG'
       end
 
-      merge 6, repo_2, 5 do |delta|
+      merge 6, repo_2, 5 do |delta, current_commit, target_commit|
         delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Republica Argentina', 'code' => 'ARG'}
+        current_commit.must_equal commits[3]
+        target_commit.must_equal commits[5]
       end
 
       assert_index 6, 'AR' => digest(name: 'Republica Argentina', code: 'ARG'),
                       'UY' => digest(name: 'Uruguay')
 
-      merge 7, repo_1, 3 do |delta|
+      merge 7, repo_1, 3 do |delta, current_commit, target_commit|
         delta['AR'].must_equal 'action' => 'update', 'data' => {'name' => 'Republica Argentina', 'code' => 'ARG'}
+        current_commit.must_equal commits[5]
+        target_commit.must_equal commits[3]
       end
 
       assert_index 7, 'AR' => digest(name: 'Republica Argentina', code: 'ARG'),

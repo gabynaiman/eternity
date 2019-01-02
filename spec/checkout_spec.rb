@@ -18,9 +18,11 @@ describe Repository, 'Checkout' do
       repository.current_branch.must_equal 'master'
       repository.current_commit.must_equal commit_2
 
-      delta = repository.checkout branch: :test_branch
-
-      delta.must_equal 'countries' => {'UY' => {'action' => 'delete'}}
+      patch = repository.checkout branch: :test_branch
+      
+      patch.current_commit.must_equal commit_2
+      patch.target_commit.must_equal commit_1
+      patch.delta.must_equal 'countries' => {'UY' => {'action' => 'delete'}}
 
       repository.current_branch.must_equal 'test_branch'
       repository.current_commit.must_equal commit_1
@@ -36,9 +38,11 @@ describe Repository, 'Checkout' do
       
       Branch[:test_branch] = commit.id
 
-      delta = repository.checkout branch: :test_branch
-
-      delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+      patch = repository.checkout branch: :test_branch
+      
+      patch.current_commit.must_be_nil
+      patch.target_commit.must_equal commit
+      patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
 
       repository.current_branch.must_equal 'test_branch'
       repository.current_commit.must_equal commit
@@ -65,9 +69,11 @@ describe Repository, 'Checkout' do
       repository.current_commit.must_equal commit_2
       repository.branches.to_h.must_equal 'master' => commit_2.id
 
-      delta = repository.checkout commit: commit_1.id
-
-      delta.must_equal 'countries' => {'UY' => {'action' => 'delete'}}
+      patch = repository.checkout commit: commit_1.id
+      
+      patch.current_commit.must_equal commit_2
+      patch.target_commit.must_equal commit_1
+      patch.delta.must_equal 'countries' => {'UY' => {'action' => 'delete'}}
 
       repository.current_branch.must_equal 'master'
       repository.current_commit.must_equal commit_1
@@ -86,9 +92,11 @@ describe Repository, 'Checkout' do
       repository[:countries].insert 'UY', name: 'Uruguay'
       commit_2 = repository.commit author: 'User', message: 'Commit 2'
 
-      delta = repository.checkout commit: nil
-
-      delta.must_equal 'countries' => {
+      patch = repository.checkout commit: nil
+      
+      patch.current_commit.must_equal commit_2
+      patch.target_commit.must_be_nil
+      patch.delta.must_equal 'countries' => {
         'AR' => {'action' => 'delete'},
         'UY' => {'action' => 'delete'}
       }

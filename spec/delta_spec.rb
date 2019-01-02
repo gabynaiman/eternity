@@ -36,7 +36,8 @@ describe 'Delta' do
 
     repo_1.push
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     commit_6 = repo_2.current_commit # Merge
 
     delta.must_equal 'countries' => {
@@ -52,7 +53,8 @@ describe 'Delta' do
 
     repo_2.push
 
-    delta = repo_1.pull
+    patch = repo_1.pull
+    delta = patch.delta
 
     repo_1.current_commit.must_equal commit_6
 
@@ -70,7 +72,8 @@ describe 'Delta' do
 
     repo_1.push
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     commit_9 = repo_2.current_commit # Merge
 
     delta.must_equal 'countries' => {
@@ -89,7 +92,8 @@ describe 'Delta' do
 
     repo_2.push
 
-    delta = repo_1.pull
+    patch = repo_1.pull
+    delta = patch.delta
 
     repo_1.current_commit.must_equal commit_10
 
@@ -102,7 +106,8 @@ describe 'Delta' do
     repo_3[:countries].insert 'UY', name: 'Uruguay'
     commit_11 = repo_3.commit author: 'User 3', message: 'Commit 11'
 
-    delta = repo_3.checkout commit: commit_10.id
+    patch = repo_3.checkout commit: commit_10.id
+    delta = patch.delta
 
     repo_3.current_commit.must_equal commit_10
 
@@ -125,7 +130,8 @@ describe 'Delta' do
     repo_1.commit author: 'User 1', message: 'Added Argentina'
     repo_1.push
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
     }
@@ -137,7 +143,8 @@ describe 'Delta' do
     repo_2[:countries].insert 'BR', name: 'Brasil'
     repo_2.commit author: 'User 2', message: 'Added Brasil'
     
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_be_empty
 
     repo_2.current_commit.must_equal_index 'countries' => {
@@ -150,7 +157,8 @@ describe 'Delta' do
     repo_1[:countries].insert 'UY', name: 'Uruguay'
     repo_1.commit author: 'User 1', message: 'Added Uruguay'
     
-    delta = repo_1.pull
+    patch = repo_1.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}}
     }
@@ -166,7 +174,8 @@ describe 'Delta' do
     repo_2[:countries].insert 'CL', name: 'Chile'
     repo_2.commit author: 'User 2', message: 'Added Chile'
     
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
     }
@@ -183,7 +192,8 @@ describe 'Delta' do
     repo_1[:countries].update 'UY', name: 'Republica Oriental del Uruguay'
     repo_1.commit author: 'User 1', message: 'Updated Uruguay'
     
-    delta = repo_1.pull
+    patch = repo_1.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'CL' => {'action' => 'insert', 'data' => {'name' => 'Chile'}}
     }
@@ -200,7 +210,8 @@ describe 'Delta' do
     repo_2[:countries].delete 'CL'
     repo_2.commit author: 'User 2', message: 'Deleted Chile'
     
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'UY' => {'action' => 'update', 'data' => {'name' => 'Republica Oriental del Uruguay'}}
     }
@@ -216,7 +227,8 @@ describe 'Delta' do
     repo_1[:countries].insert 'CO', name: 'Colombia'
     repo_1.commit author: 'User 1', message: 'Added Colombia'
     
-    delta = repo_1.pull
+    patch = repo_1.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'CL' => {'action' => 'delete'}
     }
@@ -242,7 +254,8 @@ describe 'Delta' do
     repo_1.commit author: 'User 1', message: 'Commit 1'
     repo_1.push
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
     }
@@ -251,7 +264,8 @@ describe 'Delta' do
       'AR' => digest(name: 'Argentina'),
     }
 
-    delta = repo_3.pull
+    patch = repo_3.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
     }
@@ -270,7 +284,8 @@ describe 'Delta' do
     repo_3.commit author: 'User 3', message: 'Commit 4'
     repo_3.push
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
     }
@@ -282,7 +297,8 @@ describe 'Delta' do
 
     repo_2.push
 
-    delta = repo_1.pull
+    patch = repo_1.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'number' => 54}},
       'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}
@@ -300,7 +316,8 @@ describe 'Delta' do
     repo_1.commit author: 'User 1', message: 'Commit 7'
     repo_1.push
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'BR' => {'action' => 'insert', 'data' => {'name' => 'Brasil'}},
       'UY' => {'action' => 'delete'}
@@ -334,7 +351,8 @@ describe 'Delta' do
       'UY' => digest(name: 'Uruguay'),
     }
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}
     }
@@ -357,7 +375,8 @@ describe 'Delta' do
       'UY' => digest(name: 'Uruguay')
     }
 
-    delta = repo_2.pull
+    patch = repo_2.pull
+    delta = patch.delta
     delta.must_be_empty
 
     repo_2.current_commit.must_equal_index 'countries' => {
@@ -367,7 +386,8 @@ describe 'Delta' do
 
     repo_2.push
 
-    delta = repo_1.pull
+    patch = repo_1.pull
+    delta = patch.delta
     delta.must_equal 'countries' => {
       'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina', 'number' => 54}},
       'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}},

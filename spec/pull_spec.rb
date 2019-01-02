@@ -22,9 +22,12 @@ describe Repository, 'Pull' do
     commit = other_repository.commit author: 'User', message: 'Commit 1'
     other_repository.push
 
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit
+
     repository.current_commit.must_equal commit
     repository.branches[repository.current_branch].must_equal commit.id
   end
@@ -34,9 +37,12 @@ describe Repository, 'Pull' do
     commit_1 = repository.commit author: 'User', message: 'Commit 1'
     repository.push
     
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_be_empty
+    patch.delta.must_be_empty
+    patch.current_commit.must_equal commit_1
+    patch.target_commit.must_equal commit_1
+
     repository.current_commit.must_equal commit_1
   end
 
@@ -49,9 +55,12 @@ describe Repository, 'Pull' do
     repository[:countries].insert 'UY', name: 'Uruguay'
     commit_2 = repository.commit author: 'User', message: 'Commit 2'
 
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_be_empty
+    patch.delta.must_be_empty
+    patch.current_commit.must_equal commit_2
+    patch.target_commit.must_equal commit_1
+
     repository.current_commit.must_equal commit_2
   end
 
@@ -61,9 +70,11 @@ describe Repository, 'Pull' do
     repository.push
     
     other_repository = Repository.new :other
-    delta = other_repository.pull
+    patch = other_repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit_1
 
     repository[:countries].insert 'UY', name: 'Uruguay'
     commit_2 = repository.commit author: 'User', message: 'Commit 2'
@@ -73,9 +84,11 @@ describe Repository, 'Pull' do
     other_repository.current_commit.must_equal commit_1
     other_repository.branches[other_repository.current_branch].must_equal commit_1.id
 
-    delta = other_repository.pull
+    patch = other_repository.pull
 
-    delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
+    patch.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
+    patch.current_commit.must_equal commit_1
+    patch.target_commit.must_equal commit_2
 
     other_repository.wont_be :changes?
     other_repository.current_commit.must_equal commit_2
@@ -88,9 +101,11 @@ describe Repository, 'Pull' do
     repository.push
     
     other_repository = Repository.new :other
-    delta = other_repository.pull
-
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch = other_repository.pull
+    
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit_1
     
     other_repository[:countries].insert 'UY', name: '...'
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
@@ -103,9 +118,11 @@ describe Repository, 'Pull' do
     repository[:countries].insert 'BR', name: 'Brasil'
     commit_4 = repository.commit author: 'User', message: 'Commit 4'
 
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
+    patch.delta.must_equal 'countries' => {'UY' => {'action' => 'insert', 'data' => {'name' => 'Uruguay'}}}
+    patch.current_commit.must_equal commit_4
+    patch.target_commit.must_equal commit_3
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
@@ -128,9 +145,11 @@ describe Repository, 'Pull' do
     repository.push
     
     other_repository = Repository.new :other
-    delta = other_repository.pull
+    patch = other_repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina 1'}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina 1'}}}
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit_1
 
     other_repository[:countries].update 'AR', name: 'Argentina 2', number: 54
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
@@ -138,9 +157,11 @@ describe Repository, 'Pull' do
 
     repository[:countries].update 'AR', name: 'Argentina 3'
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina 3', 'number' => 54}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina 3', 'number' => 54}}}
+    patch.current_commit.must_equal commit_3
+    patch.target_commit.must_equal commit_2
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
@@ -159,9 +180,11 @@ describe Repository, 'Pull' do
     repository.push
 
     other_repository = Repository.new :other
-    delta = other_repository.pull
+    patch = other_repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit_1
 
     other_repository[:countries].update 'AR', name: 'Argentina', number: 54
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
@@ -169,9 +192,11 @@ describe Repository, 'Pull' do
 
     repository[:countries].update 'AR', name: 'Argentina', code: 'ARG'
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG', 'number' => 54}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'update', 'data' => {'name' => 'Argentina', 'code' => 'ARG', 'number' => 54}}}
+    patch.current_commit.must_equal commit_3
+    patch.target_commit.must_equal commit_2
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
@@ -190,9 +215,11 @@ describe Repository, 'Pull' do
     repository.push
 
     other_repository = Repository.new :other
-    delta = other_repository.pull
+    patch = other_repository.pull
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit_1
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
 
     other_repository[:countries].insert 'X', name: 'X1', code: 1
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
@@ -200,9 +227,11 @@ describe Repository, 'Pull' do
 
     repository[:countries].insert 'X', name: 'X2', number: 2
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_equal 'countries' => {'X' => {'action' => 'update', 'data' => {'name' => 'X2', 'number' => 2, 'code' => 1}}}
+    patch.delta.must_equal 'countries' => {'X' => {'action' => 'update', 'data' => {'name' => 'X2', 'number' => 2, 'code' => 1}}}
+    patch.current_commit.must_equal commit_3
+    patch.target_commit.must_equal commit_2
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
     
@@ -224,9 +253,11 @@ describe Repository, 'Pull' do
     repository.push
 
     other_repository = Repository.new :other
-    delta = other_repository.pull
+    patch = other_repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit_1
 
     other_repository[:countries].delete 'AR'
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
@@ -235,9 +266,11 @@ describe Repository, 'Pull' do
     repository[:countries].delete 'AR'
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
 
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_be_empty
+    patch.delta.must_be_empty
+    patch.current_commit.must_equal commit_3
+    patch.target_commit.must_equal commit_2
 
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
     
@@ -256,9 +289,11 @@ describe Repository, 'Pull' do
     repository.push
 
     other_repository = Repository.new :other
-    delta = other_repository.pull
+    patch = other_repository.pull
 
-    delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.delta.must_equal 'countries' => {'AR' => {'action' => 'insert', 'data' => {'name' => 'Argentina'}}}
+    patch.current_commit.must_be_nil
+    patch.target_commit.must_equal commit_1
 
     other_repository[:countries].delete 'AR'
     commit_2 = other_repository.commit author: 'User', message: 'Commit 2'
@@ -267,10 +302,12 @@ describe Repository, 'Pull' do
     repository[:countries].update 'AR', name: 'Argentina', code: 'ARG'
     commit_3 = repository.commit author: 'User', message: 'Commit 3'
     
-    delta = repository.pull
+    patch = repository.pull
 
-    delta.must_be_empty
-
+    patch.delta.must_be_empty
+    patch.current_commit.must_equal commit_3
+    patch.target_commit.must_equal commit_2
+    
     repository.branches[repository.current_branch].must_equal repository.current_commit.id
 
     repository.current_commit.tap do |commit|

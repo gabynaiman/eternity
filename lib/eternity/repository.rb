@@ -92,7 +92,7 @@ module Eternity
 
         current[:branch] = branch
 
-        Patch.diff(original_commit, current_commit).delta
+        Patch.diff original_commit, current_commit
       end
     end
 
@@ -128,7 +128,7 @@ module Eternity
       Eternity.logger.info(self.class) { "Pull #{name} (#{target_commit.id})" }
 
       if current_commit == target_commit || current_commit.fast_forward?(target_commit)
-        {}
+        Patch.merge current_commit, target_commit
       elsif target_commit.fast_forward?(current_commit)
         checkout commit: target_commit.id
       else 
@@ -213,7 +213,7 @@ module Eternity
                 index:   write_index(patch.delta),
                 base:    patch.base_commit.id
 
-        patch.delta
+        patch
       end
     end
 
